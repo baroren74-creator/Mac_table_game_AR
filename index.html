@@ -13,34 +13,99 @@
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
-      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
       font-family: Arial, Helvetica, sans-serif;
       background: radial-gradient(circle at top, #ffe29a 0%, #ffd34d 35%, #ffbc0d 100%);
       color: var(--mcd-dark);
     }
-    body { display:flex; align-items:center; justify-content:center; padding:12px; }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
     .phone {
-      position: relative; width: min(100%, 430px); height: min(100dvh - 24px, 860px);
+      position: relative;
+      width: min(100%, 430px);
+      height: min(100dvh - 24px, 860px);
       background: linear-gradient(180deg, #fff4d0 0%, #fffaf0 100%);
-      border-radius: 28px; border: 8px solid rgba(255,255,255,.65); overflow: hidden;
+      border-radius: 28px;
+      border: 8px solid rgba(255,255,255,.65);
+      overflow: hidden;
       box-shadow: var(--shadow);
     }
     .topbar {
-      position: relative; z-index: 20; background: var(--mcd-red); color: #fff;
-      padding: 14px 16px 18px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
+      position: relative;
+      z-index: 20;
+      background: var(--mcd-red);
+      color: #fff;
+      padding: 14px 16px 18px;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
       box-shadow: 0 8px 20px rgba(214,31,38,.25);
     }
-    .brand { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
-    .brand-title { font-size:18px; font-weight:800; line-height:1; }
-    .logo-wrap { width:36px; height:36px; border-radius:10px; overflow:hidden; background:rgba(255,255,255,.12); }
-    .logo-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
-    .hud { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-    .stat { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.2); border-radius:16px; padding:10px 8px; text-align:center; backdrop-filter: blur(8px); }
-    .label { font-size:12px; opacity:.92; margin-bottom:4px; }
-    .value { font-size:20px; font-weight:800; }
-    .game-wrap { position:relative; height:calc(100% - 128px); padding:14px; }
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .logo-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255,255,255,.12);
+    }
+    .logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .stat {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 16px;
+      padding: 10px 8px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    .label {
+      font-size: 12px;
+      opacity: .92;
+      margin-bottom: 4px;
+    }
+    .value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .game-wrap {
+      position: relative;
+      height: calc(100% - 128px);
+      padding: 14px;
+    }
     .arena {
-      position:relative; width:100%; height:100%; border-radius:28px; overflow:hidden;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      overflow: hidden;
       background:
         radial-gradient(circle at 20% 20%, rgba(255,255,255,.58), transparent 28%),
         radial-gradient(circle at 80% 15%, rgba(255,255,255,.42), transparent 24%),
@@ -48,65 +113,219 @@
       box-shadow: inset 0 0 0 10px rgba(255,255,255,.18), inset 0 -8px 22px rgba(0,0,0,.12);
     }
     .arena::before {
-      content:""; position:absolute; inset:0;
+      content: "";
+      position: absolute;
+      inset: 0;
       background-image:
         linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-      background-size:100% 42px, 42px 100%; opacity:.35; pointer-events:none;
+      background-size: 100% 42px, 42px 100%;
+      opacity: .35;
+      pointer-events: none;
     }
     .arena::after {
-      content:""; position:absolute; inset:0;
+      content: "";
+      position: absolute;
+      inset: 0;
       background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.15) 100%);
-      pointer-events:none;
+      pointer-events: none;
     }
-    #gameArea { position:absolute; inset:0; z-index:5; }
+    #gameArea {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+    }
     .round-banner {
-      position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:8;
-      background:rgba(255,255,255,.88); color:#7a4500; padding:8px 14px;
-      border-radius:999px; font-size:13px; font-weight:800; box-shadow:0 6px 16px rgba(0,0,0,.08);
-      white-space:nowrap; max-width:calc(100% - 28px); overflow:hidden; text-overflow:ellipsis;
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 8;
+      background: rgba(255,255,255,.88);
+      color: #7a4500;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 6px 16px rgba(0,0,0,.08);
+      white-space: nowrap;
+      max-width: calc(100% - 28px);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .sticker {
-      position:absolute; right:18px; bottom:18px; z-index:8; background:rgba(255,255,255,.88);
-      border-radius:999px; padding:8px 12px; font-size:12px; font-weight:800; box-shadow:0 6px 16px rgba(0,0,0,.15);
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 8;
+      background: rgba(255,255,255,.88);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 6px 16px rgba(0,0,0,.15);
     }
     .item {
-      position:absolute; width:78px; height:78px; border:0; background:transparent; padding:0;
-      cursor:pointer; user-select:none; transform-origin:center; animation:popIn .16s ease-out;
-      filter:drop-shadow(0 10px 12px rgba(0,0,0,.22)); z-index:6;
+      position: absolute;
+      width: 78px;
+      height: 78px;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+      user-select: none;
+      transform-origin: center;
+      animation: popIn .16s ease-out;
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,.22));
+      z-index: 6;
     }
-    .item img { width:100%; height:100%; object-fit:contain; display:block; pointer-events:none; }
-    .item.hit { animation:hitFx .22s ease-out forwards; pointer-events:none; }
+    .item img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+    .item.hit {
+      animation: hitFx .22s ease-out forwards;
+      pointer-events: none;
+    }
     .floating {
-      position:absolute; z-index:9; background:rgba(214,31,38,.94); color:#fff; font-size:14px; font-weight:800;
-      border-radius:999px; padding:6px 10px; transform:translate(-50%, -50%); animation:floatUp .7s ease-out forwards;
-      box-shadow:0 8px 18px rgba(0,0,0,.18); pointer-events:none;
+      position: absolute;
+      z-index: 9;
+      background: rgba(214,31,38,.94);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      border-radius: 999px;
+      padding: 6px 10px;
+      transform: translate(-50%, -50%);
+      animation: floatUp .7s ease-out forwards;
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+      pointer-events: none;
     }
     .screen {
-      position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px;
-      z-index:30; background:linear-gradient(180deg, rgba(214,31,38,.94), rgba(214,31,38,.86)); color:#fff; text-align:center; transition:.22s ease;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 30;
+      background: linear-gradient(180deg, rgba(214,31,38,.94), rgba(214,31,38,.86));
+      color: #fff;
+      text-align: center;
+      transition: .22s ease;
     }
-    .screen.hidden { opacity:0; pointer-events:none; transform:scale(1.02); }
-    .panel { max-width:330px; }
-    .panel h1 { margin:0 0 12px; font-size:34px; line-height:1; }
-    .panel p { margin:0 0 16px; line-height:1.5; font-size:16px; opacity:.96; }
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.02);
+    }
+    .panel {
+      max-width: 330px;
+    }
+    .panel h1 {
+      margin: 0 0 12px;
+      font-size: 34px;
+      line-height: 1;
+    }
+    .panel p {
+      margin: 0 0 16px;
+      line-height: 1.5;
+      font-size: 16px;
+      opacity: .96;
+    }
     .btn {
-      appearance:none; border:0; border-radius:999px; padding:14px 22px; background:var(--mcd-yellow);
-      color:#4b2a00; font-size:18px; font-weight:900; cursor:pointer; box-shadow:0 10px 20px rgba(0,0,0,.2); width:100%;
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      background: var(--mcd-yellow);
+      color: #4b2a00;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.2);
+      width: 100%;
     }
-    .btn.secondary { background:#fff; color:var(--mcd-red); margin-top:10px; }
-    .room-box { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:12px; margin:14px 0; }
-    .room-code { font-size:28px; font-weight:900; letter-spacing:2px; margin-top:6px; }
-    .players-list { display:grid; gap:10px; margin:18px 0 14px; text-align:right; }
-    .player-chip { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:10px 14px; font-weight:700; }
-    .player-chip span { opacity:.8; font-weight:400; }
-    .small-note { font-size:12px; opacity:.9; margin-top:12px; line-height:1.45; }
-    .status-pill { display:inline-block; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:8px 12px; font-size:12px; margin-top:10px; }
-    .results-block { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); border-radius:18px; padding:14px; margin:14px 0; text-align:right; }
-    .results-row { display:flex; justify-content:space-between; gap:10px; font-size:14px; margin:8px 0; }
-    @keyframes popIn { from { transform:scale(.65); opacity:0; } to { transform:scale(1); opacity:1; } }
-    @keyframes hitFx { to { transform:scale(1.22); opacity:0; } }
-    @keyframes floatUp { 0% { opacity:0; transform:translate(-50%, -35%); } 15% { opacity:1; } 100% { opacity:0; transform:translate(-50%, -140%); } }
+    .btn.secondary {
+      background: #fff;
+      color: var(--mcd-red);
+      margin-top: 10px;
+    }
+    .room-box {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 12px;
+      margin: 14px 0;
+    }
+    .room-code {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-top: 6px;
+    }
+    .players-list {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 14px;
+      text-align: right;
+    }
+    .player-chip {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+    .player-chip span {
+      opacity: .8;
+      font-weight: 400;
+    }
+    .small-note {
+      font-size: 12px;
+      opacity: .9;
+      margin-top: 12px;
+      line-height: 1.45;
+    }
+    .status-pill {
+      display: inline-block;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    .results-block {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 18px;
+      padding: 14px;
+      margin: 14px 0;
+      text-align: right;
+    }
+    .results-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 14px;
+      margin: 8px 0;
+    }
+    @keyframes popIn {
+      from { transform: scale(.65); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes hitFx {
+      to { transform: scale(1.22); opacity: 0; }
+    }
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translate(-50%, -35%); }
+      15% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -140%); }
+    }
   </style>
 </head>
 <body>
@@ -190,17 +409,10 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getDatabase, ref, set, get, update, onValue, off, push } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+    import {{ initializeApp }} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {{ getDatabase, ref, set, get, update, onValue, off, push }} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-    const ASSET_PATHS = {
-      logo: 'logo.png',
-      chips: 'chips.png',
-      burger: 'burger.png',
-      icecream: 'ice cream.png'
-    };
-
-    const FIREBASE_CONFIG = Object.freeze({
+    const FIREBASE_CONFIG = Object.freeze({{
       apiKey: 'AIzaSyB9sgQBeHOxc9U3syWWtAiipoGQB8dE7Xg',
       authDomain: 'table-game-web.firebaseapp.com',
       databaseURL: 'https://table-game-web-default-rtdb.firebaseio.com',
@@ -209,18 +421,18 @@
       messagingSenderId: '1035098157788',
       appId: '1:1035098157788:web:77178d06f2640d87e4fa19',
       measurementId: 'G-HDHX6E6L84'
-    });
+    }});
 
-    const ASSETS = {
-      chips: { name: 'צ׳יפס', src: ASSET_PATHS.chips },
-      burger: { name: 'בורגר', src: ASSET_PATHS.burger },
-      icecream: { name: 'גלידה', src: ASSET_PATHS.icecream }
-    };
+    const ASSETS = {{
+      chips: {{ name: 'צ׳יפס', src: 'chips.png' }},
+      burger: {{ name: 'בורגר', src: 'burger.png' }},
+      icecream: {{ name: 'גלידה', src: 'ice cream.png' }}
+    }};
 
     const ROUNDS = [
-      { key: 'chips', label: 'סיבוב 1 · צ׳יפס', instruction: 'צ׳יפסים בלבד. תפסו כמה שיותר.' },
-      { key: 'burger', label: 'סיבוב 2 · בורגר', instruction: 'עוברים לבורגרים.' },
-      { key: 'icecream', label: 'סיבוב 3 · גלידה', instruction: 'סיבוב אחרון עם גלידות.' }
+      {{ key: 'chips', label: 'סיבוב 1 · צ׳יפס', instruction: 'צ׳יפסים בלבד. תפסו כמה שיותר.' }},
+      {{ key: 'burger', label: 'סיבוב 2 · בורגר', instruction: 'עוברים לבורגרים.' }},
+      {{ key: 'icecream', label: 'סיבוב 3 · גלידה', instruction: 'סיבוב אחרון עם גלידות.' }}
     ];
 
     const ROUND_DURATION = 8;
@@ -230,7 +442,6 @@
     const ITEM_LIFETIME = 1400;
     const ITEM_SIZE = 78;
     const MIN_DISTANCE = 92;
-    const HOST_PLAYER = 'p1';
 
     const app = initializeApp(FIREBASE_CONFIG);
     const db = getDatabase(app);
@@ -277,103 +488,96 @@
     let currentState = null;
     const activeItems = new Map();
 
-    function showScreen(screen) {
+    function showScreen(screen) {{
       [startScreen, lobbyScreen, joinScreen, transitionScreen, endScreen].forEach((el) => el.classList.add('hidden'));
       screen.classList.remove('hidden');
-    }
+    }}
 
-    function makeRoomId() {
+    function makeRoomId() {{
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let out = 'MC';
       for (let i = 0; i < 2; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
       return out;
-    }
+    }}
 
-    function shareUrl() {
-      return `${window.location.origin}${window.location.pathname}?room=${roomId}&player=p2`;
-    }${window.location.pathname}?room=${roomId}&player=p2`;
-    }
+    function shareUrl() {{
+      return `${{window.location.origin}}${{window.location.pathname}}?room=${{roomId}}&player=p2`;
+    }}
 
-    function updateHUDFromState(state) {
-      const total = state?.totalScores || { p1: 0, p2: 0 };
+    function updateHUDFromState(state) {{
+      const total = state?.totalScores || {{ p1: 0, p2: 0 }};
       const timeLeft = typeof state?.timeLeft === 'number' ? state.timeLeft : ROUND_DURATION;
       scoreValue1.textContent = String(total.p1 || 0);
       scoreValue2.textContent = String(total.p2 || 0);
       scoreLabel1.textContent = myPlayer === 'p1' ? 'אתם' : 'Player 1';
       scoreLabel2.textContent = myPlayer === 'p2' ? 'אתם' : 'Player 2';
       timeValue.textContent = String(Math.max(0, timeLeft));
-      stickerText.textContent = roomId ? `Room ${roomId}` : 'Room ----';
+      stickerText.textContent = roomId ? `Room ${{roomId}}` : 'Room ----';
 
       const roundIndex = state?.roundIndex ?? -1;
-      if (state?.status === 'playing' && roundIndex >= 0) {
-        roundBanner.textContent = ROUNDS[roundIndex].label;
-      } else if (state?.status === 'between_rounds' && roundIndex >= 0) {
-        roundBanner.textContent = `${ROUNDS[roundIndex].label} · מתכוננים`;
-      } else if (state?.status === 'lobby') {
-        roundBanner.textContent = 'טורניר של 3 משחקונים';
-      } else if (state?.status === 'ended') {
-        roundBanner.textContent = 'הטורניר הסתיים';
-      }
-    }
+      if (state?.status === 'playing' && roundIndex >= 0) roundBanner.textContent = ROUNDS[roundIndex].label;
+      else if (state?.status === 'between_rounds' && roundIndex >= 0) roundBanner.textContent = `${{ROUNDS[roundIndex].label}} · מתכוננים`;
+      else if (state?.status === 'lobby') roundBanner.textContent = 'טורניר של 3 משחקונים';
+      else if (state?.status === 'ended') roundBanner.textContent = 'הטורניר הסתיים';
+    }}
 
-    function renderPlayers(state) {
+    function renderPlayers(state) {{
       const rows = [];
       if (state?.players?.p1) rows.push('<div class="player-chip">🟡 Player 1 <span>מחובר</span></div>');
       if (state?.players?.p2) rows.push('<div class="player-chip">🔴 Player 2 <span>מחובר</span></div>');
       if (!rows.length) rows.push('<div class="player-chip">🟡 Player 1 <span>מחובר</span></div>');
       playersList.innerHTML = rows.join('');
-    }
+    }}
 
-    function clearItems() {
+    function clearItems() {{
       activeItems.forEach((el) => el.remove());
       activeItems.clear();
       document.querySelectorAll('.floating').forEach((el) => el.remove());
-    }
+    }}
 
-    function showFloating(text, x, y) {
+    function showFloating(text, x, y) {{
       const el = document.createElement('div');
       el.className = 'floating';
       el.textContent = text;
-      el.style.left = `${x}px`;
-      el.style.top = `${y}px`;
+      el.style.left = `${{x}}px`;
+      el.style.top = `${{y}}px`;
       gameArea.appendChild(el);
       setTimeout(() => el.remove(), 700);
-    }
+    }}
 
-    function renderSpawns(spawns, roundKey) {
-      const ids = new Set(Object.keys(spawns || {}));
-      activeItems.forEach((el, id) => {
-        if (!ids.has(id)) {
+    function renderSpawns(spawns, roundKey) {{
+      const ids = new Set(Object.keys(spawns || {{}}));
+      activeItems.forEach((el, id) => {{
+        if (!ids.has(id)) {{
           el.remove();
           activeItems.delete(id);
-        }
-      });
-
-      Object.entries(spawns || {}).forEach(([spawnId, spawn]) => {
+        }}
+      }});
+      Object.entries(spawns || {{}}).forEach(([spawnId, spawn]) => {{
         if (activeItems.has(spawnId)) return;
         createItemElement(spawnId, spawn.x, spawn.y, roundKey);
-      });
-    }
+      }});
+    }}
 
-    function createItemElement(spawnId, x, y, roundKey) {
+    function createItemElement(spawnId, x, y, roundKey) {{
       const asset = ASSETS[roundKey];
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'item';
       button.dataset.spawnId = spawnId;
-      button.style.left = `${x}px`;
-      button.style.top = `${y}px`;
-      button.innerHTML = `<img src="${asset.src}" alt="${asset.name}" />`;
+      button.style.left = `${{x}}px`;
+      button.style.top = `${{y}}px`;
+      button.innerHTML = `<img src="${{asset.src}}" alt="${{asset.name}}" />`;
       button.addEventListener('click', () => hitItem(button, x, y));
-      button.addEventListener('touchstart', (event) => {
+      button.addEventListener('touchstart', (event) => {{
         event.preventDefault();
         hitItem(button, x, y);
-      }, { passive: false });
+      }}, {{ passive: false }});
       gameArea.appendChild(button);
       activeItems.set(spawnId, button);
-    }
+    }}
 
-    async function hitItem(button, x, y) {
+    async function hitItem(button, x, y) {{
       if (!gameRunning || !button.isConnected || !currentState) return;
       const spawnId = button.dataset.spawnId;
       activeItems.delete(spawnId);
@@ -381,188 +585,185 @@
       setTimeout(() => button.remove(), 220);
       showFloating('+1', x + 24, y + 10);
 
-      const roomRef = ref(db, `rooms/${roomId}`);
-      const nextRoundScores = { ...(currentState.roundScores || { p1: 0, p2: 0 }) };
+      const roomRef = ref(db, `rooms/${{roomId}}`);
+      const nextRoundScores = {{ ...(currentState.roundScores || {{ p1: 0, p2: 0 }}) }};
       nextRoundScores[myPlayer] = (nextRoundScores[myPlayer] || 0) + 1;
-      const nextTotalScores = { ...(currentState.totalScores || { p1: 0, p2: 0 }) };
+      const nextTotalScores = {{ ...(currentState.totalScores || {{ p1: 0, p2: 0 }}) }};
       nextTotalScores[myPlayer] = (nextTotalScores[myPlayer] || 0) + 1;
 
-      await update(roomRef, {
+      await update(roomRef, {{
         roundScores: nextRoundScores,
         totalScores: nextTotalScores,
-        [`spawns/${spawnId}`]: null
-      });
-    }
+        [`spawns/${{spawnId}}`]: null
+      }});
+    }}
 
-    function findSpawnPosition(existing) {
+    function findSpawnPosition(existing) {{
       const rect = gameArea.getBoundingClientRect();
       const margin = 18;
-      for (let attempt = 0; attempt < 40; attempt += 1) {
+      for (let attempt = 0; attempt < 40; attempt += 1) {{
         const x = Math.random() * Math.max(1, rect.width - ITEM_SIZE - margin * 2) + margin;
         const y = Math.random() * Math.max(1, rect.height - ITEM_SIZE - margin * 2) + margin;
-        const ok = existing.every((pos) => Math.hypot(pos.x - x, pos.y - y) >= 92);
-        if (ok) return { x, y };
-      }
-      return {
+        const ok = existing.every((pos) => Math.hypot(pos.x - x, pos.y - y) >= MIN_DISTANCE);
+        if (ok) return {{ x, y }};
+      }}
+      return {{
         x: Math.random() * Math.max(1, rect.width - ITEM_SIZE - margin * 2) + margin,
         y: Math.random() * Math.max(1, rect.height - ITEM_SIZE - margin * 2) + margin
-      };
-    }
+      }};
+    }}
 
-    async function spawnLoop() {
+    async function spawnLoop() {{
       if (!gameRunning || !currentState || currentState.status !== 'playing') return;
-
-      const spawns = currentState.spawns || {};
-      const existing = Object.values(spawns).map((s) => ({ x: s.x, y: s.y }));
+      const spawns = currentState.spawns || {{}};
+      const existing = Object.values(spawns).map((s) => ({{ x: s.x, y: s.y }}));
       const pos = findSpawnPosition(existing);
-      const spawnId = push(ref(db, `rooms/${roomId}/spawns`)).key;
+      const spawnId = push(ref(db, `rooms/${{roomId}}/spawns`)).key;
 
-      await update(ref(db, `rooms/${roomId}`), {
-        [`spawns/${spawnId}`]: { x: pos.x, y: pos.y, createdAt: Date.now() }
-      });
+      await update(ref(db, `rooms/${{roomId}}`), {{
+        [`spawns/${{spawnId}}`]: {{ x: pos.x, y: pos.y, createdAt: Date.now() }}
+      }});
 
-      setTimeout(async () => {
-        const oneRef = ref(db, `rooms/${roomId}/spawns/${spawnId}`);
+      setTimeout(async () => {{
+        const oneRef = ref(db, `rooms/${{roomId}}/spawns/${{spawnId}}`);
         const snap = await get(oneRef);
         if (snap.exists()) await set(oneRef, null);
-      }, 1400);
+      }}, ITEM_LIFETIME);
 
-      spawnTimeout = setTimeout(spawnLoop, Math.random() * (760 - 420) + 420);
-    }
+      spawnTimeout = setTimeout(spawnLoop, Math.random() * (SPAWN_MAX - SPAWN_MIN) + SPAWN_MIN);
+    }}
 
-    async function createRoomIfNeeded() {
+    async function createRoomIfNeeded() {{
       if (!roomId) roomId = makeRoomId();
       roomCodeText.textContent = roomId;
-      stickerText.textContent = `Room ${roomId}`;
+      stickerText.textContent = `Room ${{roomId}}`;
 
-      const roomRef = ref(db, `rooms/${roomId}`);
+      const roomRef = ref(db, `rooms/${{roomId}}`);
       const snap = await get(roomRef);
-      if (!snap.exists()) {
-        await set(roomRef, {
+      if (!snap.exists()) {{
+        await set(roomRef, {{
           createdAt: Date.now(),
           status: 'lobby',
           roundIndex: -1,
-          timeLeft: 8,
-          players: { p1: true },
-          roundScores: { p1: 0, p2: 0 },
-          totalScores: { p1: 0, p2: 0 },
+          timeLeft: ROUND_DURATION,
+          players: {{ p1: true }},
+          roundScores: {{ p1: 0, p2: 0 }},
+          totalScores: {{ p1: 0, p2: 0 }},
           roundWinners: [null, null, null],
-          spawns: {}
-        });
-      }
+          spawns: {{}}
+        }});
+      }}
 
-      await set(ref(db, `rooms/${roomId}/players/${myPlayer}`), true);
+      await set(ref(db, `rooms/${{roomId}}/players/${{myPlayer}}`), true);
       subscribeRoom();
-    }
+    }}
 
-    function subscribeRoom() {
-      if (roomStateUnsubscribe) {
+    function subscribeRoom() {{
+      if (roomStateUnsubscribe) {{
         roomStateUnsubscribe();
         roomStateUnsubscribe = null;
-      }
-
-      const roomRef = ref(db, `rooms/${roomId}`);
-      const callback = (snap) => {
+      }}
+      const roomRef = ref(db, `rooms/${{roomId}}`);
+      const callback = (snap) => {{
         const state = snap.val();
         if (!state) return;
         currentState = state;
         updateHUDFromState(state);
         renderPlayers(state);
 
-        if (state.status === 'lobby') {
+        if (state.status === 'lobby') {{
           clearItems();
           showScreen(lobbyScreen);
-        }
+        }}
 
-        if (state.status === 'between_rounds') {
+        if (state.status === 'between_rounds') {{
           clearItems();
           const round = ROUNDS[state.roundIndex];
           transitionTitle.textContent = round.label;
           transitionText.textContent = round.instruction;
-          transitionCountdown.textContent = `מתחיל בעוד ${state.timeLeft}...`;
+          transitionCountdown.textContent = `מתחיל בעוד ${{state.timeLeft}}...`;
           showScreen(transitionScreen);
-        }
+        }}
 
-        if (state.status === 'playing') {
+        if (state.status === 'playing') {{
           gameRunning = true;
           transitionScreen.classList.add('hidden');
-          renderSpawns(state.spawns || {}, ROUNDS[state.roundIndex].key);
-        } else {
+          renderSpawns(state.spawns || {{}}, ROUNDS[state.roundIndex].key);
+        }} else {{
           gameRunning = false;
-        }
+        }}
 
-        if (state.status === 'ended') {
+        if (state.status === 'ended') {{
           clearItems();
           renderResults(state);
           showScreen(endScreen);
-        }
-      };
-
+        }}
+      }};
       onValue(roomRef, callback);
       roomStateUnsubscribe = () => off(roomRef, 'value', callback);
-    }
+    }}
 
-    function renderResults(state) {
+    function renderResults(state) {{
       const roundWinners = state.roundWinners || [null, null, null];
-      const totalScores = state.totalScores || { p1: 0, p2: 0 };
-      const wins = {
+      const totalScores = state.totalScores || {{ p1: 0, p2: 0 }};
+      const wins = {{
         p1: roundWinners.filter((w) => w === 'p1').length,
-        p2: roundWinners.filter((w) => w === 'p2').length,
-      };
+        p2: roundWinners.filter((w) => w === 'p2').length
+      }};
 
-      const roundText = roundWinners.map((winner, index) => {
+      const roundText = roundWinners.map((winner, index) => {{
         let label = 'תיקו';
         if (winner === 'p1') label = 'Player 1';
         if (winner === 'p2') label = 'Player 2';
-        return `<div class="results-row"><span>${ROUNDS[index].label}</span><strong>${label}</strong></div>`;
-      }).join('');
+        return `<div class="results-row"><span>${{ROUNDS[index].label}}</span><strong>${{label}}</strong></div>`;
+      }}).join('');
 
       let finalWinner = 'יש תיקו';
       if (wins.p1 > wins.p2) finalWinner = 'Player 1 ניצח בטורניר';
       if (wins.p2 > wins.p1) finalWinner = 'Player 2 ניצח בטורניר';
 
       resultsBlock.innerHTML = `
-        ${roundText}
-        <div class="results-row"><span>ניקוד כולל Player 1</span><strong>${totalScores.p1 || 0}</strong></div>
-        <div class="results-row"><span>ניקוד כולל Player 2</span><strong>${totalScores.p2 || 0}</strong></div>
-        <div class="results-row"><span>סיבובים שניצח Player 1</span><strong>${wins.p1}</strong></div>
-        <div class="results-row"><span>סיבובים שניצח Player 2</span><strong>${wins.p2}</strong></div>
+        ${{roundText}}
+        <div class="results-row"><span>ניקוד כולל Player 1</span><strong>${{totalScores.p1 || 0}}</strong></div>
+        <div class="results-row"><span>ניקוד כולל Player 2</span><strong>${{totalScores.p2 || 0}}</strong></div>
+        <div class="results-row"><span>סיבובים שניצח Player 1</span><strong>${{wins.p1}}</strong></div>
+        <div class="results-row"><span>סיבובים שניצח Player 2</span><strong>${{wins.p2}}</strong></div>
       `;
       finalWinnerText.textContent = finalWinner;
-    }
+    }}
 
-    async function hostGameTimer() {
+    async function hostGameTimer() {{
       clearInterval(tickInterval);
-      tickInterval = setInterval(async () => {
-        const roomRef = ref(db, `rooms/${roomId}`);
+      tickInterval = setInterval(async () => {{
+        const roomRef = ref(db, `rooms/${{roomId}}`);
         const snap = await get(roomRef);
         const state = snap.val();
-        if (!state) {
+        if (!state) {{
           clearInterval(tickInterval);
           return;
-        }
+        }}
 
-        if (state.status === 'between_rounds') {
+        if (state.status === 'between_rounds') {{
           const next = (state.timeLeft || 0) - 1;
-          if (next <= 0) {
-            await update(roomRef, {
+          if (next <= 0) {{
+            await update(roomRef, {{
               status: 'playing',
-              timeLeft: 8,
-              roundScores: { p1: 0, p2: 0 },
-              spawns: {}
-            });
+              timeLeft: ROUND_DURATION,
+              roundScores: {{ p1: 0, p2: 0 }},
+              spawns: {{}}
+            }});
             spawnLoop();
-          } else {
-            await update(roomRef, { timeLeft: next });
-          }
+          }} else {{
+            await update(roomRef, {{ timeLeft: next }});
+          }}
           return;
-        }
+        }}
 
-        if (state.status === 'playing') {
+        if (state.status === 'playing') {{
           const next = (state.timeLeft || 0) - 1;
-          if (next <= 0) {
+          if (next <= 0) {{
             clearTimeout(spawnTimeout);
-            const roundScores = state.roundScores || { p1: 0, p2: 0 };
+            const roundScores = state.roundScores || {{ p1: 0, p2: 0 }};
             let winner = null;
             if ((roundScores.p1 || 0) > (roundScores.p2 || 0)) winner = 'p1';
             if ((roundScores.p2 || 0) > (roundScores.p1 || 0)) winner = 'p2';
@@ -570,80 +771,75 @@
             const roundWinners = [...(state.roundWinners || [null, null, null])];
             roundWinners[state.roundIndex] = winner;
 
-            if (state.roundIndex >= 2) {
-              await update(roomRef, { status: 'ended', timeLeft: 0, roundWinners, spawns: {} });
+            if (state.roundIndex >= 2) {{
+              await update(roomRef, {{ status: 'ended', timeLeft: 0, roundWinners, spawns: {{}} }});
               clearInterval(tickInterval);
-            } else {
-              await update(roomRef, {
+            }} else {{
+              await update(roomRef, {{
                 status: 'between_rounds',
                 roundIndex: state.roundIndex + 1,
-                timeLeft: 3,
-                roundScores: { p1: 0, p2: 0 },
+                timeLeft: BETWEEN_ROUNDS,
+                roundScores: {{ p1: 0, p2: 0 }},
                 roundWinners,
-                spawns: {}
-              });
-            }
-          } else {
-            await update(roomRef, { timeLeft: next });
-          }
-        }
-      }, 1000);
-    }
+                spawns: {{}}
+              }});
+            }}
+          }} else {{
+            await update(roomRef, {{ timeLeft: next }});
+          }}
+        }}
+      }}, 1000);
+    }}
 
-    async function startTournament() {
+    async function startTournament() {{
       if (!roomId) await createRoomIfNeeded();
-      await update(ref(db, `rooms/${roomId}`), {
+      await update(ref(db, `rooms/${{roomId}}`), {{
         status: 'between_rounds',
         roundIndex: 0,
         timeLeft: BETWEEN_ROUNDS,
-        roundScores: { p1: 0, p2: 0 },
-        totalScores: { p1: 0, p2: 0 },
+        roundScores: {{ p1: 0, p2: 0 }},
+        totalScores: {{ p1: 0, p2: 0 }},
         roundWinners: [null, null, null],
-        spawns: {}
-      });
+        spawns: {{}}
+      }});
+      if (myPlayer === 'p1') await hostGameTimer();
+    }}
 
-      if (myPlayer === HOST_PLAYER) {
-        await hostGameTimer();
-      }
-    }
-
-    async function createRoomFlow() {
+    async function createRoomFlow() {{
       myPlayer = 'p1';
       roomId = makeRoomId();
-      history.replaceState({}, '', `${window.location.pathname}?room=${roomId}&player=p1`);
+      history.replaceState({{}}, '', `${{window.location.pathname}}?room=${{roomId}}&player=p1`);
       await createRoomIfNeeded();
       showScreen(lobbyScreen);
-    }
+    }}
 
-    async function joinRoomFlow() {
+    async function joinRoomFlow() {{
       roomId = (roomInput.value || '').trim().toUpperCase();
       if (!roomId) return;
       myPlayer = 'p2';
-      history.replaceState({}, '', `${window.location.pathname}?room=${roomId}&player=p2`);
+      history.replaceState({{}}, '', `${{window.location.pathname}}?room=${{roomId}}&player=p2`);
       await createRoomIfNeeded();
       showScreen(lobbyScreen);
-    }
+    }}
 
-    async function copyLink() {
+    async function copyLink() {{
       if (!roomId) return;
-      try {
+      try {{
         await navigator.clipboard.writeText(shareUrl());
         copyLinkBtn.textContent = 'הקישור הועתק';
-        setTimeout(() => { copyLinkBtn.textContent = 'העתק קישור לחבר'; }, 1600);
-      } catch {
+        setTimeout(() => {{ copyLinkBtn.textContent = 'העתק קישור לחבר'; }}, 1600);
+      }} catch {{
         alert(shareUrl());
-      }
-    }
+      }}
+    }}
 
-    function runSelfChecks() {
+    function runSelfChecks() {{
       console.assert(typeof makeRoomId() === 'string', 'makeRoomId must return a string');
       console.assert(makeRoomId().startsWith('MC'), 'room code should start with MC');
       console.assert(ROUNDS.length === 3, 'should have exactly 3 rounds');
       console.assert(typeof ASSETS.chips.src === 'string', 'chips asset should exist');
-      console.assert(typeof ASSETS.burger.src === 'string', 'burger asset should exist');
-      console.assert(typeof ASSETS.icecream.src === 'string', 'ice cream asset should exist');
       console.assert(typeof shareUrl === 'function', 'shareUrl should exist');
-    }
+    }}
 
     createRoomBtn.addEventListener('click', createRoomFlow);
     joinRoomBtn.addEventListener('click', () => showScreen(joinScreen));
@@ -654,18 +850,18 @@
     backBtn.addEventListener('click', () => showScreen(startScreen));
 
     runSelfChecks();
-    updateHUDFromState({ totalScores: { p1: 0, p2: 0 }, timeLeft: 8, status: 'lobby' });
+    updateHUDFromState({{ totalScores: {{ p1: 0, p2: 0 }}, timeLeft: ROUND_DURATION, status: 'lobby' }});
 
-    if (roomId) {
-      createRoomIfNeeded().then(() => {
+    if (roomId) {{
+      createRoomIfNeeded().then(() => {{
         if (myPlayer !== 'p1' && myPlayer !== 'p2') myPlayer = 'p2';
         showScreen(lobbyScreen);
-      }).catch((error) => {
+      }}).catch((error) => {{
         console.error(error);
         backendNote.textContent = 'הייתה תקלה בפתיחת החדר. בדקו את הרשאות Realtime Database.';
         showScreen(startScreen);
-      });
-    }
+      }});
+    }}
   </script>
 </body>
 </html>
