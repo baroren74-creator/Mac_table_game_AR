@@ -813,7 +813,8 @@
       cameraOverlay.classList.remove('active');
       arControls.classList.remove('active');
       setArVisualState(true);
-      alert('השולחן ננעל ✔ עכשיו המשחק יתפרס על כל המסך');
+      backendNote.textContent = 'השולחן ננעל. עכשיו אפשר ללחוץ על "התחילו עם AR" כדי להתחיל את הסיבוב.';
+      showScreen(lobbyScreen);
     }
 
     function renderRemoteSpawns(spawns) {
@@ -1019,6 +1020,11 @@
 
     async function startGame(useAR = false) {
       if (useAR && !arLocked) {
+        backendNote.textContent = 'עוד לא נעלת את השולחן. קודם לחצו על "התחילו עם AR", אחר כך על "קבע על השולחן", ואז התחילו שוב.';
+        showScreen(lobbyScreen);
+        return;
+      }
+      if (useAR && !arLocked) {
         alert('קודם צריך ללחוץ על קבע על השולחן');
         return;
       }
@@ -1154,12 +1160,30 @@
     joinRoomBtn.addEventListener('click', () => showScreen(joinScreen));
     confirmJoinBtn.addEventListener('click', joinRoomFlow);
     copyLinkBtn.addEventListener('click', copyLink);
-    arModeBtn.addEventListener('click', () => startGame(true));
+    arModeBtn.addEventListener('click', async () => {
+      showScreen(loadingScreen);
+      loadingCopy.innerHTML = 'פותח מצלמה…<br />כוונו לשולחן ואז לחצו על קיבוע.';
+      statusPill.textContent = 'AR setup';
+      const ok = await enableCameraPreview();
+      if (!ok) {
+        showScreen(lobbyScreen);
+        return;
+      }
+      showScreen(loadingScreen);
+      loadingScreen.classList.add('hidden');
+      cameraOverlay.classList.add('active');
+      arControls.classList.add('active');
+      backendNote.textContent = 'מצב AR פתוח. עכשיו לחצו על "קבע על השולחן" ורק אחר כך התחילו משחק.';
+    });
     playBtn.addEventListener('click', () => startGame(false));
     restartBtn.addEventListener('click', () => showScreen(lobbyScreen));
     backBtn.addEventListener('click', () => showScreen(startScreen));
     lockArBtn.addEventListener('click', lockArPlacement);
-    cancelArBtn.addEventListener('click', disableCameraPreview);
+    cancelArBtn.addEventListener('click', () => {
+      disableCameraPreview();
+      backendNote.textContent = 'ביטלת את מצב ה-AR.';
+      showScreen(lobbyScreen);
+    });
 
     roomInput.value = roomId;
     updateHUD();
