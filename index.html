@@ -66,17 +66,22 @@
     }
 
     .arches {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: var(--mcd-yellow);
-      color: var(--mcd-red);
-      font-size: 18px;
-      font-weight: 900;
+      background: rgba(255,255,255,.14);
+      overflow: hidden;
       flex-shrink: 0;
+    }
+
+    .arches img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .hud {
@@ -317,8 +322,8 @@
 
     .fries {
       position: absolute;
-      width: 64px;
-      height: 64px;
+      width: 72px;
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -333,11 +338,16 @@
       z-index: 7;
     }
 
+    .fries img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+
     .fries .emoji {
-      font-size: 52px;
-      line-height: 1;
-      transform: rotate(var(--rot));
-      display: inline-block;
+      display: none;
     }
 
     .fries.hit {
@@ -491,7 +501,7 @@
   <div class="phone">
     <div class="topbar">
       <div class="brand">
-        <span class="arches">M</span>
+        <span class="arches"><img src="logo.png" alt="McDonald's logo" /></span>
         <span>Catch the Fries</span>
       </div>
       <div class="hud">
@@ -611,6 +621,8 @@
       push
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
+    const GAME_ASSETS = ['chips.png', 'burger.png', 'ice cream.png'];
+
     const FIREBASE_CONFIG = Object.freeze({
       apiKey: 'AIzaSyB9sgQBeHOxc9U3syWWtAiipoGQB8dE7Xg',
       authDomain: 'table-game-web.firebaseapp.com',
@@ -715,8 +727,9 @@
       scoreLabel2.textContent = myPlayer === 'p2' ? 'אתם' : 'Player 2';
       stickerText.textContent = roomId ? `Room ${roomId}` : 'Multiplayer Demo';
       bottomTip.textContent = arLocked
-        ? 'מצב AR פעיל · המשחק מוצג מעל המצלמה'
+        ? 'השולחן ננעל · אפשר להתחיל משחק AR'
         : 'צרו שולחן, שתפו קישור, ושחקו יחד';
+      arModeBtn.textContent = arLocked ? 'התחילו משחק AR' : 'פתחו מצב AR';
     }
 
     function clearActiveFries() {
@@ -806,14 +819,17 @@
       cameraOverlay.classList.remove('active');
       arControls.classList.remove('active');
       setArVisualState(false);
+      updateHUD();
     }
 
     function lockArPlacement() {
       arLocked = true;
+      arRequested = false;
       cameraOverlay.classList.remove('active');
       arControls.classList.remove('active');
       setArVisualState(true);
-      backendNote.textContent = 'השולחן ננעל. עכשיו אפשר ללחוץ על "התחילו עם AR" כדי להתחיל את הסיבוב.';
+      backendNote.textContent = 'השולחן ננעל. עכשיו לחצו על "התחילו משחק AR".';
+      updateHUD();
       showScreen(lobbyScreen);
     }
 
@@ -829,17 +845,17 @@
 
       Object.entries(spawns).forEach(([spawnId, spawn]) => {
         if (document.querySelector(`[data-spawn-id="${spawnId}"]`)) return;
-        spawnFriesElement(spawnId, spawn.x, spawn.y);
+        spawnFriesElement(spawnId, spawn.x, spawn.y, spawn.asset || 'chips.png');
       });
     }
 
-    function spawnFriesElement(spawnId, x, y) {
+    function spawnFriesElement(spawnId, x, y, asset = 'chips.png') {
       const fries = document.createElement('button');
       fries.type = 'button';
       fries.className = 'fries';
       fries.dataset.spawnId = spawnId;
-      fries.setAttribute('aria-label', 'Fries');
-      fries.innerHTML = `<span class="emoji" style="--rot:${Math.floor(randomBetween(-18, 18))}deg">🍟</span>`;
+      fries.setAttribute('aria-label', 'Game item');
+      fries.innerHTML = `<img src="${asset}" alt="game item" />`;
       fries.style.left = `${x}px`;
       fries.style.top = `${y}px`;
       fries.addEventListener('click', () => onFriesHit(fries, x, y));
@@ -973,10 +989,11 @@
       const spawnId = hasFirebase
         ? push(ref(db, `rooms/${roomId}/spawns`)).key
         : `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const asset = GAME_ASSETS[Math.floor(Math.random() * GAME_ASSETS.length)];
 
       if (hasFirebase) {
         await update(ref(db, `rooms/${roomId}`), {
-          [`spawns/${spawnId}`]: { x, y, createdAt: Date.now() }
+          [`spawns/${spawnId}`]: { x, y, asset, createdAt: Date.now() }
         });
         setTimeout(async () => {
           const roomRef = ref(db, `rooms/${roomId}/spawns/${spawnId}`);
@@ -986,7 +1003,7 @@
           }
         }, FRIES_LIFETIME);
       } else {
-        spawnFriesElement(spawnId, x, y);
+        spawnFriesElement(spawnId, x, y, asset);
       }
 
       spawnTimeout = setTimeout(spawnLoop, randomBetween(SPAWN_MIN, SPAWN_MAX));
@@ -1020,21 +1037,14 @@
 
     async function startGame(useAR = false) {
       if (useAR && !arLocked) {
-        backendNote.textContent = 'עוד לא נעלת את השולחן. קודם לחצו על "התחילו עם AR", אחר כך על "קבע על השולחן", ואז התחילו שוב.';
+        backendNote.textContent = 'קודם פתחו מצב AR, קבעו על השולחן, ואז התחילו משחק AR.';
         showScreen(lobbyScreen);
         return;
       }
-      if (useAR && !arLocked) {
-        alert('קודם צריך ללחוץ על קבע על השולחן');
-        return;
-      }
+
       if (!roomId) await ensureRoom();
 
-      if (useAR) {
-        const ok = await enableCameraPreview();
-        if (!ok) return;
-        lockArPlacement();
-      } else if (arRequested || arLocked) {
+      if (!useAR && (arRequested || arLocked)) {
         disableCameraPreview();
       }
 
@@ -1161,6 +1171,11 @@
     confirmJoinBtn.addEventListener('click', joinRoomFlow);
     copyLinkBtn.addEventListener('click', copyLink);
     arModeBtn.addEventListener('click', async () => {
+      if (arLocked) {
+        await startGame(true);
+        return;
+      }
+
       showScreen(loadingScreen);
       loadingCopy.innerHTML = 'פותח מצלמה…<br />כוונו לשולחן ואז לחצו על קיבוע.';
       statusPill.textContent = 'AR setup';
@@ -1169,11 +1184,10 @@
         showScreen(lobbyScreen);
         return;
       }
-      showScreen(loadingScreen);
       loadingScreen.classList.add('hidden');
       cameraOverlay.classList.add('active');
       arControls.classList.add('active');
-      backendNote.textContent = 'מצב AR פתוח. עכשיו לחצו על "קבע על השולחן" ורק אחר כך התחילו משחק.';
+      backendNote.textContent = 'מצב AR פתוח. עכשיו לחצו על "קבע על השולחן".';
     });
     playBtn.addEventListener('click', () => startGame(false));
     restartBtn.addEventListener('click', () => showScreen(lobbyScreen));
