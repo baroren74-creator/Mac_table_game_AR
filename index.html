@@ -3,564 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Catch the Fries AR Multiplayer</title>
+  <title>Mc Table Battle</title>
   <style>
     :root {
       --mcd-red: #d61f26;
       --mcd-yellow: #ffbc0d;
       --mcd-dark: #222;
-      --mcd-wood-1: #a65c2e;
-      --mcd-wood-2: #8d4d25;
-      --shadow: 0 10px 30px rgba(0,0,0,.15);
+      --shadow: 0 10px 30px rgba(0,0,0,.16);
     }
-
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       font-family: Arial, Helvetica, sans-serif;
       background: radial-gradient(circle at top, #ffe29a 0%, #ffd34d 35%, #ffbc0d 100%);
       color: var(--mcd-dark);
     }
-
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px;
-    }
-
+    body { display:flex; align-items:center; justify-content:center; padding:12px; }
     .phone {
-      position: relative;
-      width: min(100%, 430px);
-      height: min(100dvh - 24px, 860px);
+      position: relative; width: min(100%, 430px); height: min(100dvh - 24px, 860px);
       background: linear-gradient(180deg, #fff4d0 0%, #fffaf0 100%);
-      border-radius: 28px;
+      border-radius: 28px; border: 8px solid rgba(255,255,255,.65); overflow: hidden;
       box-shadow: var(--shadow);
-      overflow: hidden;
-      border: 8px solid rgba(255,255,255,.65);
     }
-
     .topbar {
-      position: relative;
-      z-index: 8;
-      background: var(--mcd-red);
-      color: white;
-      padding: 14px 16px 18px;
-      border-bottom-left-radius: 24px;
-      border-bottom-right-radius: 24px;
+      position: relative; z-index: 20; background: var(--mcd-red); color: #fff;
+      padding: 14px 16px 18px; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
       box-shadow: 0 8px 20px rgba(214,31,38,.25);
     }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 20px;
-      margin-bottom: 12px;
-    }
-
-    .arches {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255,255,255,.14);
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .arches img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .hud {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-    }
-
-    .stat {
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 16px;
-      padding: 10px 8px;
-      text-align: center;
-      backdrop-filter: blur(8px);
-    }
-
-    .stat .label {
-      font-size: 12px;
-      opacity: .9;
-      margin-bottom: 4px;
-    }
-
-    .stat .value {
-      font-size: 20px;
-      font-weight: 800;
-    }
-
-    .game-wrap {
-      position: relative;
-      height: calc(100% - 128px);
-      padding: 14px;
-    }
-
-    .table-shell {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 28px;
-      overflow: hidden;
-      background: linear-gradient(180deg, #a65c2e 0%, #8d4d25 100%);
+    .brand { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+    .brand-title { font-size:18px; font-weight:800; line-height:1; }
+    .logo-wrap { width:36px; height:36px; border-radius:10px; overflow:hidden; background:rgba(255,255,255,.12); }
+    .logo-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+    .hud { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .stat { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.2); border-radius:16px; padding:10px 8px; text-align:center; backdrop-filter: blur(8px); }
+    .label { font-size:12px; opacity:.92; margin-bottom:4px; }
+    .value { font-size:20px; font-weight:800; }
+    .game-wrap { position:relative; height:calc(100% - 128px); padding:14px; }
+    .arena {
+      position:relative; width:100%; height:100%; border-radius:28px; overflow:hidden;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.58), transparent 28%),
+        radial-gradient(circle at 80% 15%, rgba(255,255,255,.42), transparent 24%),
+        linear-gradient(180deg, #a65c2e 0%, #8d4d25 100%);
       box-shadow: inset 0 0 0 10px rgba(255,255,255,.18), inset 0 -8px 22px rgba(0,0,0,.12);
     }
-
-    .table-shell::before {
-      content: "";
-      position: absolute;
-      inset: 0;
+    .arena::before {
+      content:""; position:absolute; inset:0;
       background-image:
         linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-      background-size: 100% 42px, 42px 100%;
-      pointer-events: none;
-      opacity: .35;
-      z-index: 0;
+      background-size:100% 42px, 42px 100%; opacity:.35; pointer-events:none;
     }
-
-    .table-shell::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.14) 100%);
-      pointer-events: none;
-      z-index: 0;
+    .arena::after {
+      content:""; position:absolute; inset:0;
+      background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.15) 100%);
+      pointer-events:none;
     }
-
-    #cameraLayer {
-      position: absolute;
-      inset: 0;
-      display: none;
-      z-index: 1;
-      background: #000;
+    #gameArea { position:absolute; inset:0; z-index:5; }
+    .round-banner {
+      position:absolute; top:14px; left:50%; transform:translateX(-50%); z-index:8;
+      background:rgba(255,255,255,.88); color:#7a4500; padding:8px 14px;
+      border-radius:999px; font-size:13px; font-weight:800; box-shadow:0 6px 16px rgba(0,0,0,.08);
+      white-space:nowrap; max-width:calc(100% - 28px); overflow:hidden; text-overflow:ellipsis;
     }
-
-    #cameraLayer.active { display: block; }
-
-    #cameraVideo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transform: scaleX(-1);
-    }
-
-    #cameraOverlay {
-      position: absolute;
-      inset: 0;
-      display: none;
-      z-index: 4;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 20px;
-      text-align: center;
-      color: #fff;
-      background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.28));
-      pointer-events: none;
-    }
-
-    #cameraOverlay.active { display: flex; }
-
-    .scan-frame {
-      width: 74%;
-      max-width: 280px;
-      aspect-ratio: 1.35 / 1;
-      border: 3px dashed rgba(255,255,255,.95);
-      border-radius: 22px;
-      box-shadow: 0 0 0 999px rgba(0,0,0,.18);
-      background: rgba(255,255,255,.03);
-      position: relative;
-    }
-
-    .scan-frame::before {
-      content: "";
-      position: absolute;
-      inset: 10px;
-      border-radius: 16px;
-      border: 2px solid rgba(255,188,13,.95);
-    }
-
-    .scan-copy {
-      margin-top: 16px;
-      font-size: 15px;
-      line-height: 1.45;
-      font-weight: 700;
-      text-shadow: 0 2px 6px rgba(0,0,0,.35);
-    }
-
-    .scan-subcopy {
-      margin-top: 8px;
-      font-size: 12px;
-      opacity: .92;
-    }
-
-    #arControls {
-      position: absolute;
-      left: 50%;
-      bottom: 22px;
-      transform: translateX(-50%);
-      z-index: 5;
-      display: none;
-      gap: 10px;
-      width: calc(100% - 28px);
-      max-width: 330px;
-      pointer-events: auto;
-    }
-
-    #arControls.active {
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .btn {
-      appearance: none;
-      border: 0;
-      border-radius: 999px;
-      padding: 14px 22px;
-      background: var(--mcd-yellow);
-      color: #4b2a00;
-      font-size: 18px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 10px 20px rgba(0,0,0,.2);
-    }
-
-    .btn.secondary {
-      background: white;
-      color: var(--mcd-red);
-      margin-top: 10px;
-    }
-
-    .btn.small {
-      padding: 12px 16px;
-      font-size: 15px;
-    }
-
-    .btn:active { transform: translateY(1px) scale(.99); }
-
-    #tableSurface {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,.6), transparent 28%),
-        radial-gradient(circle at 80% 15%, rgba(255,255,255,.45), transparent 24%),
-        linear-gradient(180deg, var(--mcd-wood-1) 0%, var(--mcd-wood-2) 100%);
-    }
-
-    #tableSurface.camera-mode {
-      background: transparent;
-    }
-
-    .plate {
-      display:none;
-    }
-
-    .plate.camera-mode {
-      inset: 24% 10% 18%;
-      background: rgba(255,248,231,.18);
-      border: 3px solid rgba(255,255,255,.65);
-      box-shadow:
-        0 14px 40px rgba(0,0,0,.18),
-        inset 0 0 50px rgba(255,255,255,.18);
-      backdrop-filter: blur(1px);
-    }
-
     .sticker {
-      position: absolute;
-      bottom: 18px;
-      right: 18px;
-      background: rgba(255,255,255,.9);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      box-shadow: 0 6px 16px rgba(0,0,0,.15);
-      z-index: 6;
+      position:absolute; right:18px; bottom:18px; z-index:8; background:rgba(255,255,255,.88);
+      border-radius:999px; padding:8px 12px; font-size:12px; font-weight:800; box-shadow:0 6px 16px rgba(0,0,0,.15);
     }
-
-    .bottom-tip {
-      position: absolute;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,.85);
-      color: #7a4500;
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      z-index: 6;
-      box-shadow: 0 6px 16px rgba(0,0,0,.08);
-      white-space: nowrap;
-      max-width: calc(100% - 36px);
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .item {
+      position:absolute; width:78px; height:78px; border:0; background:transparent; padding:0;
+      cursor:pointer; user-select:none; transform-origin:center; animation:popIn .16s ease-out;
+      filter:drop-shadow(0 10px 12px rgba(0,0,0,.22)); z-index:6;
     }
-
-    .fries {
-      position: absolute;
-      width: 72px;
-      height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      cursor: pointer;
-      border: 0;
-      background: transparent;
-      padding: 0;
-      transform-origin: center;
-      animation: popIn .18s ease-out;
-      filter: drop-shadow(0 8px 10px rgba(0,0,0,.22));
-      z-index: 7;
-    }
-
-    .fries img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      pointer-events: none;
-    }
-
-    .fries .emoji {
-      display: none;
-    }
-
-    .fries.hit {
-      animation: hitFx .25s ease-out forwards;
-      pointer-events: none;
-    }
-
+    .item img { width:100%; height:100%; object-fit:contain; display:block; pointer-events:none; }
+    .item.hit { animation:hitFx .22s ease-out forwards; pointer-events:none; }
     .floating {
-      position: absolute;
-      font-weight: 800;
-      color: white;
-      background: rgba(214,31,38,.92);
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 14px;
-      transform: translate(-50%, -50%);
-      animation: floatUp .7s ease-out forwards;
-      z-index: 9;
-      box-shadow: 0 8px 18px rgba(0,0,0,.18);
-      pointer-events: none;
+      position:absolute; z-index:9; background:rgba(214,31,38,.94); color:#fff; font-size:14px; font-weight:800;
+      border-radius:999px; padding:6px 10px; transform:translate(-50%, -50%); animation:floatUp .7s ease-out forwards;
+      box-shadow:0 8px 18px rgba(0,0,0,.18); pointer-events:none;
     }
-
-    .center-screen {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 10;
-      background: linear-gradient(180deg, rgba(214,31,38,.92), rgba(214,31,38,.84));
-      color: white;
-      text-align: center;
-      transition: .25s ease;
+    .screen {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:20px;
+      z-index:30; background:linear-gradient(180deg, rgba(214,31,38,.94), rgba(214,31,38,.86)); color:#fff; text-align:center; transition:.22s ease;
     }
-
-    .center-screen.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(1.02);
+    .screen.hidden { opacity:0; pointer-events:none; transform:scale(1.02); }
+    .panel { max-width:330px; }
+    .panel h1 { margin:0 0 12px; font-size:34px; line-height:1; }
+    .panel p { margin:0 0 16px; line-height:1.5; font-size:16px; opacity:.96; }
+    .btn {
+      appearance:none; border:0; border-radius:999px; padding:14px 22px; background:var(--mcd-yellow);
+      color:#4b2a00; font-size:18px; font-weight:900; cursor:pointer; box-shadow:0 10px 20px rgba(0,0,0,.2); width:100%;
     }
-
-    .panel { max-width: 330px; }
-
-    .panel h1 {
-      margin: 0 0 10px;
-      font-size: 36px;
-      line-height: 1;
-    }
-
-    .panel p {
-      margin: 0 0 16px;
-      font-size: 16px;
-      line-height: 1.5;
-      opacity: .96;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      margin-top: 12px;
-      opacity: .85;
-    }
-
-    .pulse { animation: pulse 1s infinite ease-in-out; }
-
-    .players-list {
-      display: grid;
-      gap: 10px;
-      margin: 18px 0 14px;
-      text-align: right;
-    }
-
-    .player-chip {
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 16px;
-      padding: 10px 14px;
-      font-weight: 700;
-    }
-
-    .player-chip span { opacity: .8; font-weight: 400; }
-
-    .small-note {
-      font-size: 12px;
-      opacity: .88;
-      margin-top: 10px;
-      line-height: 1.4;
-    }
-
-    .room-box {
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 16px;
-      padding: 12px;
-      margin: 14px 0;
-    }
-
-    .room-code {
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      margin-top: 6px;
-    }
-
-    .status-pill {
-      display: inline-block;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.18);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      margin-top: 10px;
-    }
-
-    .stacked-actions {
-      display: grid;
-      gap: 10px;
-    }
-
-    @keyframes popIn {
-      from { transform: scale(.65); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    @keyframes hitFx {
-      to { transform: scale(1.25); opacity: 0; }
-    }
-
-    @keyframes floatUp {
-      0% { opacity: 0; transform: translate(-50%, -35%); }
-      15% { opacity: 1; }
-      100% { opacity: 0; transform: translate(-50%, -140%); }
-    }
-
-    @keyframes pulse {
-      0%,100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    @media (max-width: 380px) {
-      .panel h1 { font-size: 30px; }
-      .fries { width: 56px; height: 56px; }
-      .fries .emoji { font-size: 46px; }
-      .hud { gap: 6px; }
-      .bottom-tip { font-size: 11px; padding: 7px 10px; }
-      .scan-copy { font-size: 14px; }
-    }
+    .btn.secondary { background:#fff; color:var(--mcd-red); margin-top:10px; }
+    .room-box { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:12px; margin:14px 0; }
+    .room-code { font-size:28px; font-weight:900; letter-spacing:2px; margin-top:6px; }
+    .players-list { display:grid; gap:10px; margin:18px 0 14px; text-align:right; }
+    .player-chip { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18); border-radius:16px; padding:10px 14px; font-weight:700; }
+    .player-chip span { opacity:.8; font-weight:400; }
+    .small-note { font-size:12px; opacity:.9; margin-top:12px; line-height:1.45; }
+    .status-pill { display:inline-block; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:8px 12px; font-size:12px; margin-top:10px; }
+    .results-block { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); border-radius:18px; padding:14px; margin:14px 0; text-align:right; }
+    .results-row { display:flex; justify-content:space-between; gap:10px; font-size:14px; margin:8px 0; }
+    @keyframes popIn { from { transform:scale(.65); opacity:0; } to { transform:scale(1); opacity:1; } }
+    @keyframes hitFx { to { transform:scale(1.22); opacity:0; } }
+    @keyframes floatUp { 0% { opacity:0; transform:translate(-50%, -35%); } 15% { opacity:1; } 100% { opacity:0; transform:translate(-50%, -140%); } }
   </style>
 </head>
 <body>
   <div class="phone">
     <div class="topbar">
       <div class="brand">
-        <span class="arches"><img src="logo.png" alt="McDonald's logo" /></span>
-        <span>Catch the Fries</span>
+        <div class="logo-wrap"><img src="logo.png" alt="logo" /></div>
+        <div class="brand-title">Mc Table Battle</div>
       </div>
       <div class="hud">
-        <div class="stat">
-          <div class="label">זמן</div>
-          <div class="value" id="timeValue">20</div>
-        </div>
-        <div class="stat">
-          <div class="label" id="scoreLabel1">Player 1</div>
-          <div class="value" id="scoreValue1">0</div>
-        </div>
-        <div class="stat">
-          <div class="label" id="scoreLabel2">Player 2</div>
-          <div class="value" id="scoreValue2">0</div>
-        </div>
+        <div class="stat"><div class="label">זמן</div><div class="value" id="timeValue">8</div></div>
+        <div class="stat"><div class="label" id="scoreLabel1">אתם</div><div class="value" id="scoreValue1">0</div></div>
+        <div class="stat"><div class="label" id="scoreLabel2">Player 2</div><div class="value" id="scoreValue2">0</div></div>
       </div>
     </div>
 
     <div class="game-wrap">
-      <div class="table-shell">
-        <div id="cameraLayer">
-          <video id="cameraVideo" playsinline autoplay muted></video>
-        </div>
-
-        <div id="tableSurface"></div>
-        <div class="plate" id="plate"></div>
-
-        <div id="cameraOverlay">
-          <div class="scan-frame"></div>
-          <div class="scan-copy">כוונו לשולחן או למדבקה ולחצו על קיבוע</div>
-          <div class="scan-subcopy">זהו מצב AR קליל בתוך הממשק הקיים</div>
-        </div>
-
-        <div id="arControls">
-          <button class="btn" id="lockArBtn">קבע על השולחן</button>
-          <button class="btn secondary small" id="cancelArBtn">בטל AR</button>
-        </div>
-
-        <div class="sticker" id="stickerText">Multiplayer Demo</div>
-        <div class="bottom-tip" id="bottomTip">צרו שולחן, שתפו קישור, ושחקו יחד</div>
-
+      <div class="arena">
+        <div class="round-banner" id="roundBanner">הכינו את השולחן למשחק</div>
+        <div class="sticker" id="stickerText">Room ----</div>
         <div id="gameArea"></div>
       </div>
     </div>
 
-    <div class="center-screen" id="startScreen">
+    <div class="screen" id="startScreen">
       <div class="panel">
-        <h1>📱</h1>
-        <p>פתחו שולחן משחק קצר בזמן ההמתנה לאוכל, ושלחו לחבר להצטרף מאותו קישור.</p>
-        <button class="btn pulse" id="createRoomBtn">פתחו שולחן</button>
+        <h1>🎮</h1>
+        <p>שלושה משחקונים קצרים. בכל סיבוב אייקון אחר. בסוף בודקים מי ניצח ביותר סיבובים.</p>
+        <button class="btn" id="createRoomBtn">פתחו שולחן</button>
         <button class="btn secondary" id="joinRoomBtn">הצטרפו לשולחן קיים</button>
-        <div class="subtitle">Multiplayer-ready MVP</div>
+        <div class="small-note">גרסת משחק נקייה לפני AR אמיתי</div>
       </div>
     </div>
 
-    <div class="center-screen hidden" id="lobbyScreen">
+    <div class="screen hidden" id="lobbyScreen">
       <div class="panel">
-        <h1>🍟</h1>
-        <p>השולחן מוכן. שתפו את הקישור, תנו לחבר להצטרף, ואז התחילו ב‑AR או בלי AR.</p>
+        <h1>🍔</h1>
+        <p>שלחו לחבר את הקישור, או תנו לו להצטרף עם קוד החדר.</p>
         <div class="room-box">
           <div>קוד חדר</div>
           <div class="room-code" id="roomCodeText">----</div>
@@ -568,60 +152,53 @@
         <div class="players-list" id="playersList">
           <div class="player-chip">🟡 Player 1 <span>מחובר</span></div>
         </div>
-        <div class="stacked-actions">
-          <button class="btn" id="copyLinkBtn">העתק קישור לחבר</button>
-          <button class="btn secondary" id="arModeBtn">התחילו עם AR</button>
-          <button class="btn secondary" id="playBtn">התחילו בלי AR</button>
-        </div>
-        <div class="small-note" id="backendNote">Firebase מחובר. אפשר לשתף קישור ולשחק משני טלפונים.</div>
+        <button class="btn" id="copyLinkBtn">העתק קישור לחבר</button>
+        <button class="btn secondary" id="startTournamentBtn">התחילו טורניר</button>
+        <div class="small-note" id="backendNote">Firebase מחובר. ברגע ששני שחקנים בפנים אפשר להתחיל.</div>
       </div>
     </div>
 
-    <div class="center-screen hidden" id="joinScreen">
+    <div class="screen hidden" id="joinScreen">
       <div class="panel">
         <h1>🔗</h1>
         <p>הכניסו קוד חדר כדי להצטרף.</p>
         <div class="room-box">
-          <input id="roomInput" type="text" inputmode="text" placeholder="למשל: MC42" style="width:100%; border:0; border-radius:12px; padding:14px; font-size:22px; text-align:center; font-weight:800;" maxlength="6" />
+          <input id="roomInput" type="text" inputmode="text" maxlength="6" placeholder="למשל: MC42"
+                 style="width:100%; border:0; border-radius:12px; padding:14px; font-size:22px; text-align:center; font-weight:800;" />
         </div>
         <button class="btn" id="confirmJoinBtn">הצטרפו</button>
         <button class="btn secondary" id="backBtn">חזרה</button>
-        <div class="small-note">אם תפתחו מהקישור המשותף, הקוד יתמלא לבד.</div>
       </div>
     </div>
 
-    <div class="center-screen hidden" id="loadingScreen">
+    <div class="screen hidden" id="transitionScreen">
       <div class="panel">
-        <h1>✨</h1>
-        <p id="loadingCopy">המשחק נטען על השולחן…<br />הכינו את האצבעות.</p>
-        <div class="status-pill" id="statusPill">Loading room...</div>
+        <h1 id="transitionTitle">סיבוב 1</h1>
+        <p id="transitionText">צ'יפסים בלבד. תפסו כמה שיותר.</p>
+        <div class="status-pill" id="transitionCountdown">מתחיל בעוד 3...</div>
       </div>
     </div>
 
-    <div class="center-screen hidden" id="endScreen">
+    <div class="screen hidden" id="endScreen">
       <div class="panel">
         <h1>🏁</h1>
-        <p id="finalText">סיימתם את הסיבוב</p>
-        <button class="btn" id="restartBtn">ללובי</button>
-        <div class="subtitle">מוכן להצגה, עם מצב AR קליל בתוך המשחק</div>
+        <div class="results-block" id="resultsBlock"></div>
+        <p id="finalWinnerText"></p>
+        <button class="btn" id="restartBtn">חזרה ללובי</button>
       </div>
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import {
-      getDatabase,
-      ref,
-      set,
-      get,
-      update,
-      onValue,
-      off,
-      push
-    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+    import { getDatabase, ref, set, get, update, onValue, off, push } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-    const GAME_ASSETS = ['chips.png', 'burger.png', 'ice cream.png'];
+    const ASSET_PATHS = {
+      logo: 'logo.png',
+      chips: 'chips.png',
+      burger: 'burger.png',
+      icecream: 'ice cream.png'
+    };
 
     const FIREBASE_CONFIG = Object.freeze({
       apiKey: 'AIzaSyB9sgQBeHOxc9U3syWWtAiipoGQB8dE7Xg',
@@ -634,140 +211,123 @@
       measurementId: 'G-HDHX6E6L84'
     });
 
-    const hasFirebase = Boolean(
-      FIREBASE_CONFIG.apiKey &&
-      FIREBASE_CONFIG.databaseURL &&
-      FIREBASE_CONFIG.projectId
-    );
+    const ASSETS = {
+      chips: { name: 'צ׳יפס', src: ASSET_PATHS.chips },
+      burger: { name: 'בורגר', src: ASSET_PATHS.burger },
+      icecream: { name: 'גלידה', src: ASSET_PATHS.icecream }
+    };
 
-    let db = null;
-    if (hasFirebase) {
-      const app = initializeApp(FIREBASE_CONFIG);
-      db = getDatabase(app);
-    }
+    const ROUNDS = [
+      { key: 'chips', label: 'סיבוב 1 · צ׳יפס', instruction: 'צ׳יפסים בלבד. תפסו כמה שיותר.' },
+      { key: 'burger', label: 'סיבוב 2 · בורגר', instruction: 'עוברים לבורגרים.' },
+      { key: 'icecream', label: 'סיבוב 3 · גלידה', instruction: 'סיבוב אחרון עם גלידות.' }
+    ];
 
-    const GAME_DURATION = 20;
-    const SPAWN_MIN = 350;
-    const SPAWN_MAX = 700;
-    const FRIES_LIFETIME = 1300;
+    const ROUND_DURATION = 8;
+    const BETWEEN_ROUNDS = 3;
+    const SPAWN_MIN = 420;
+    const SPAWN_MAX = 760;
+    const ITEM_LIFETIME = 1400;
+    const ITEM_SIZE = 78;
+    const MIN_DISTANCE = 92;
+    const HOST_PLAYER = 'p1';
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db = getDatabase(app);
 
     const gameArea = document.getElementById('gameArea');
-    const cameraLayer = document.getElementById('cameraLayer');
-    const cameraVideo = document.getElementById('cameraVideo');
-    const cameraOverlay = document.getElementById('cameraOverlay');
-    const arControls = document.getElementById('arControls');
-    const plate = document.getElementById('plate');
-    const tableSurface = document.getElementById('tableSurface');
-    const loadingCopy = document.getElementById('loadingCopy');
-
     const timeValue = document.getElementById('timeValue');
     const scoreValue1 = document.getElementById('scoreValue1');
     const scoreValue2 = document.getElementById('scoreValue2');
     const scoreLabel1 = document.getElementById('scoreLabel1');
     const scoreLabel2 = document.getElementById('scoreLabel2');
+    const roundBanner = document.getElementById('roundBanner');
     const stickerText = document.getElementById('stickerText');
-    const playersList = document.getElementById('playersList');
     const roomCodeText = document.getElementById('roomCodeText');
-    const roomInput = document.getElementById('roomInput');
-    const finalText = document.getElementById('finalText');
-    const statusPill = document.getElementById('statusPill');
+    const playersList = document.getElementById('playersList');
     const backendNote = document.getElementById('backendNote');
-    const bottomTip = document.getElementById('bottomTip');
+    const roomInput = document.getElementById('roomInput');
+    const transitionTitle = document.getElementById('transitionTitle');
+    const transitionText = document.getElementById('transitionText');
+    const transitionCountdown = document.getElementById('transitionCountdown');
+    const resultsBlock = document.getElementById('resultsBlock');
+    const finalWinnerText = document.getElementById('finalWinnerText');
 
     const startScreen = document.getElementById('startScreen');
     const lobbyScreen = document.getElementById('lobbyScreen');
     const joinScreen = document.getElementById('joinScreen');
-    const loadingScreen = document.getElementById('loadingScreen');
+    const transitionScreen = document.getElementById('transitionScreen');
     const endScreen = document.getElementById('endScreen');
 
     const createRoomBtn = document.getElementById('createRoomBtn');
     const joinRoomBtn = document.getElementById('joinRoomBtn');
     const confirmJoinBtn = document.getElementById('confirmJoinBtn');
     const copyLinkBtn = document.getElementById('copyLinkBtn');
-    const arModeBtn = document.getElementById('arModeBtn');
-    const playBtn = document.getElementById('playBtn');
+    const startTournamentBtn = document.getElementById('startTournamentBtn');
     const restartBtn = document.getElementById('restartBtn');
     const backBtn = document.getElementById('backBtn');
-    const lockArBtn = document.getElementById('lockArBtn');
-    const cancelArBtn = document.getElementById('cancelArBtn');
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let roomId = (urlParams.get('room') || '').toUpperCase();
-    let myPlayer = urlParams.get('player') || 'p1';
+    const params = new URLSearchParams(window.location.search);
+    let roomId = (params.get('room') || '').toUpperCase();
+    let myPlayer = params.get('player') || 'p1';
     let roomStateUnsubscribe = null;
-    let gameRunning = false;
-    let timeLeft = GAME_DURATION;
     let tickInterval = null;
     let spawnTimeout = null;
-    let cameraStream = null;
-    let arRequested = false;
-    let arLocked = false;
-    const activeFries = new Set();
-    let scores = { p1: 0, p2: 0 };
-
-    function isPublicHttpUrl() {
-      return window.location.protocol === 'http:' || window.location.protocol === 'https:';
-    }
-
-    function getShareUrl() {
-      if (!isPublicHttpUrl()) return '';
-      return `${window.location.origin}${window.location.pathname}?room=${roomId}&player=p2`;
-    }
+    let gameRunning = false;
+    let currentState = null;
+    const activeItems = new Map();
 
     function showScreen(screen) {
-      [startScreen, lobbyScreen, joinScreen, loadingScreen, endScreen].forEach((el) => el.classList.add('hidden'));
+      [startScreen, lobbyScreen, joinScreen, transitionScreen, endScreen].forEach((el) => el.classList.add('hidden'));
       screen.classList.remove('hidden');
-    }
-
-    function updateHUD() {
-      timeValue.textContent = String(timeLeft);
-      scoreValue1.textContent = String(scores.p1 || 0);
-      scoreValue2.textContent = String(scores.p2 || 0);
-      scoreLabel1.textContent = myPlayer === 'p1' ? 'אתם' : 'Player 1';
-      scoreLabel2.textContent = myPlayer === 'p2' ? 'אתם' : 'Player 2';
-      stickerText.textContent = roomId ? `Room ${roomId}` : 'Multiplayer Demo';
-      bottomTip.textContent = arLocked
-        ? 'השולחן ננעל · אפשר להתחיל משחק AR'
-        : 'צרו שולחן, שתפו קישור, ושחקו יחד';
-      arModeBtn.textContent = arLocked ? 'התחילו משחק AR' : 'פתחו מצב AR';
-    }
-
-    function clearActiveFries() {
-      activeFries.forEach((el) => el.remove());
-      activeFries.clear();
-      document.querySelectorAll('.floating').forEach((el) => el.remove());
-    }
-
-    function resetLocalGameState() {
-      gameRunning = false;
-      timeLeft = GAME_DURATION;
-      clearInterval(tickInterval);
-      clearTimeout(spawnTimeout);
-      clearActiveFries();
-      updateHUD();
-    }
-
-    function randomBetween(min, max) {
-      return Math.random() * (max - min) + min;
     }
 
     function makeRoomId() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let out = 'MC';
-      for (let i = 0; i < 2; i += 1) {
-        out += chars[Math.floor(Math.random() * chars.length)];
-      }
+      for (let i = 0; i < 2; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
       return out;
     }
 
-    function renderPlayers(state = null) {
-      const p1Ready = state?.players?.p1;
-      const p2Ready = state?.players?.p2;
+    function shareUrl() {
+      return `${window.location.origin}${window.location.pathname}?room=${roomId}&player=p2`;
+    }${window.location.pathname}?room=${roomId}&player=p2`;
+    }
+
+    function updateHUDFromState(state) {
+      const total = state?.totalScores || { p1: 0, p2: 0 };
+      const timeLeft = typeof state?.timeLeft === 'number' ? state.timeLeft : ROUND_DURATION;
+      scoreValue1.textContent = String(total.p1 || 0);
+      scoreValue2.textContent = String(total.p2 || 0);
+      scoreLabel1.textContent = myPlayer === 'p1' ? 'אתם' : 'Player 1';
+      scoreLabel2.textContent = myPlayer === 'p2' ? 'אתם' : 'Player 2';
+      timeValue.textContent = String(Math.max(0, timeLeft));
+      stickerText.textContent = roomId ? `Room ${roomId}` : 'Room ----';
+
+      const roundIndex = state?.roundIndex ?? -1;
+      if (state?.status === 'playing' && roundIndex >= 0) {
+        roundBanner.textContent = ROUNDS[roundIndex].label;
+      } else if (state?.status === 'between_rounds' && roundIndex >= 0) {
+        roundBanner.textContent = `${ROUNDS[roundIndex].label} · מתכוננים`;
+      } else if (state?.status === 'lobby') {
+        roundBanner.textContent = 'טורניר של 3 משחקונים';
+      } else if (state?.status === 'ended') {
+        roundBanner.textContent = 'הטורניר הסתיים';
+      }
+    }
+
+    function renderPlayers(state) {
       const rows = [];
-      if (p1Ready) rows.push('<div class="player-chip">🟡 Player 1 <span>מחובר</span></div>');
-      if (p2Ready) rows.push('<div class="player-chip">🔴 Player 2 <span>מחובר</span></div>');
+      if (state?.players?.p1) rows.push('<div class="player-chip">🟡 Player 1 <span>מחובר</span></div>');
+      if (state?.players?.p2) rows.push('<div class="player-chip">🔴 Player 2 <span>מחובר</span></div>');
       if (!rows.length) rows.push('<div class="player-chip">🟡 Player 1 <span>מחובר</span></div>');
       playersList.innerHTML = rows.join('');
+    }
+
+    function clearItems() {
+      activeItems.forEach((el) => el.remove());
+      activeItems.clear();
+      document.querySelectorAll('.floating').forEach((el) => el.remove());
     }
 
     function showFloating(text, x, y) {
@@ -780,346 +340,278 @@
       setTimeout(() => el.remove(), 700);
     }
 
-    function setArVisualState(enabled) {
-      arLocked = enabled;
-      tableSurface.classList.toggle('camera-mode', enabled || arRequested);
-      plate.classList.toggle('camera-mode', enabled || arRequested);
-      cameraLayer.classList.toggle('active', enabled || arRequested);
-      updateHUD();
-    }
-
-    async function enableCameraPreview() {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        backendNote.textContent = 'המצלמה לא נתמכת במכשיר הזה.';
-        return false;
-      }
-      try {
-        if (!cameraStream) {
-          cameraStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: 'environment' } },
-            audio: false
-          });
-          cameraVideo.srcObject = cameraStream;
-        }
-        arRequested = true;
-        cameraOverlay.classList.add('active');
-        arControls.classList.add('active');
-        setArVisualState(true);
-        return true;
-      } catch (error) {
-        console.error('Camera error:', error);
-        backendNote.textContent = 'לא הצלחתי לפתוח מצלמה. בדקו הרשאת מצלמה ב-Safari/Chrome.';
-        return false;
-      }
-    }
-
-    function disableCameraPreview() {
-      arRequested = false;
-      arLocked = false;
-      cameraOverlay.classList.remove('active');
-      arControls.classList.remove('active');
-      setArVisualState(false);
-      updateHUD();
-    }
-
-    function lockArPlacement() {
-      arLocked = true;
-      arRequested = false;
-      cameraOverlay.classList.remove('active');
-      arControls.classList.remove('active');
-      setArVisualState(true);
-      backendNote.textContent = 'השולחן ננעל. עכשיו לחצו על "התחילו משחק AR".';
-      updateHUD();
-      showScreen(lobbyScreen);
-    }
-
-    function renderRemoteSpawns(spawns) {
-      const knownIds = new Set(Object.keys(spawns));
-
-      activeFries.forEach((el) => {
-        if (!knownIds.has(el.dataset.spawnId)) {
-          activeFries.delete(el);
+    function renderSpawns(spawns, roundKey) {
+      const ids = new Set(Object.keys(spawns || {}));
+      activeItems.forEach((el, id) => {
+        if (!ids.has(id)) {
           el.remove();
+          activeItems.delete(id);
         }
       });
 
-      Object.entries(spawns).forEach(([spawnId, spawn]) => {
-        if (document.querySelector(`[data-spawn-id="${spawnId}"]`)) return;
-        spawnFriesElement(spawnId, spawn.x, spawn.y, spawn.asset || 'chips.png');
+      Object.entries(spawns || {}).forEach(([spawnId, spawn]) => {
+        if (activeItems.has(spawnId)) return;
+        createItemElement(spawnId, spawn.x, spawn.y, roundKey);
       });
     }
 
-    function spawnFriesElement(spawnId, x, y, asset = 'chips.png') {
-      const fries = document.createElement('button');
-      fries.type = 'button';
-      fries.className = 'fries';
-      fries.dataset.spawnId = spawnId;
-      fries.setAttribute('aria-label', 'Game item');
-      fries.innerHTML = `<img src="${asset}" alt="game item" />`;
-      fries.style.left = `${x}px`;
-      fries.style.top = `${y}px`;
-      fries.addEventListener('click', () => onFriesHit(fries, x, y));
-      fries.addEventListener('touchstart', (event) => {
+    function createItemElement(spawnId, x, y, roundKey) {
+      const asset = ASSETS[roundKey];
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'item';
+      button.dataset.spawnId = spawnId;
+      button.style.left = `${x}px`;
+      button.style.top = `${y}px`;
+      button.innerHTML = `<img src="${asset.src}" alt="${asset.name}" />`;
+      button.addEventListener('click', () => hitItem(button, x, y));
+      button.addEventListener('touchstart', (event) => {
         event.preventDefault();
-        onFriesHit(fries, x, y);
+        hitItem(button, x, y);
       }, { passive: false });
-      gameArea.appendChild(fries);
-      activeFries.add(fries);
-
-      if (!hasFirebase) {
-        setTimeout(() => {
-          if (fries.isConnected) {
-            activeFries.delete(fries);
-            fries.remove();
-          }
-        }, FRIES_LIFETIME);
-      }
+      gameArea.appendChild(button);
+      activeItems.set(spawnId, button);
     }
 
-    async function ensureRoom() {
+    async function hitItem(button, x, y) {
+      if (!gameRunning || !button.isConnected || !currentState) return;
+      const spawnId = button.dataset.spawnId;
+      activeItems.delete(spawnId);
+      button.classList.add('hit');
+      setTimeout(() => button.remove(), 220);
+      showFloating('+1', x + 24, y + 10);
+
+      const roomRef = ref(db, `rooms/${roomId}`);
+      const nextRoundScores = { ...(currentState.roundScores || { p1: 0, p2: 0 }) };
+      nextRoundScores[myPlayer] = (nextRoundScores[myPlayer] || 0) + 1;
+      const nextTotalScores = { ...(currentState.totalScores || { p1: 0, p2: 0 }) };
+      nextTotalScores[myPlayer] = (nextTotalScores[myPlayer] || 0) + 1;
+
+      await update(roomRef, {
+        roundScores: nextRoundScores,
+        totalScores: nextTotalScores,
+        [`spawns/${spawnId}`]: null
+      });
+    }
+
+    function findSpawnPosition(existing) {
+      const rect = gameArea.getBoundingClientRect();
+      const margin = 18;
+      for (let attempt = 0; attempt < 40; attempt += 1) {
+        const x = Math.random() * Math.max(1, rect.width - ITEM_SIZE - margin * 2) + margin;
+        const y = Math.random() * Math.max(1, rect.height - ITEM_SIZE - margin * 2) + margin;
+        const ok = existing.every((pos) => Math.hypot(pos.x - x, pos.y - y) >= 92);
+        if (ok) return { x, y };
+      }
+      return {
+        x: Math.random() * Math.max(1, rect.width - ITEM_SIZE - margin * 2) + margin,
+        y: Math.random() * Math.max(1, rect.height - ITEM_SIZE - margin * 2) + margin
+      };
+    }
+
+    async function spawnLoop() {
+      if (!gameRunning || !currentState || currentState.status !== 'playing') return;
+
+      const spawns = currentState.spawns || {};
+      const existing = Object.values(spawns).map((s) => ({ x: s.x, y: s.y }));
+      const pos = findSpawnPosition(existing);
+      const spawnId = push(ref(db, `rooms/${roomId}/spawns`)).key;
+
+      await update(ref(db, `rooms/${roomId}`), {
+        [`spawns/${spawnId}`]: { x: pos.x, y: pos.y, createdAt: Date.now() }
+      });
+
+      setTimeout(async () => {
+        const oneRef = ref(db, `rooms/${roomId}/spawns/${spawnId}`);
+        const snap = await get(oneRef);
+        if (snap.exists()) await set(oneRef, null);
+      }, 1400);
+
+      spawnTimeout = setTimeout(spawnLoop, Math.random() * (760 - 420) + 420);
+    }
+
+    async function createRoomIfNeeded() {
       if (!roomId) roomId = makeRoomId();
       roomCodeText.textContent = roomId;
-      updateHUD();
+      stickerText.textContent = `Room ${roomId}`;
 
-      if (!hasFirebase) {
-        backendNote.textContent = 'כרגע: זו הדמיית מולטיפלייר. כדי ששני טלפונים יתעדכנו בזמן אמת, צריך Firebase פעיל.';
-        renderPlayers({ players: { p1: true, p2: true } });
-        return;
-      }
-
-      backendNote.textContent = 'Firebase מחובר. אפשר לשתף קישור ולשחק משני טלפונים.';
       const roomRef = ref(db, `rooms/${roomId}`);
       const snap = await get(roomRef);
-
       if (!snap.exists()) {
         await set(roomRef, {
           createdAt: Date.now(),
           status: 'lobby',
-          timeLeft: GAME_DURATION,
-          scores: { p1: 0, p2: 0 },
+          roundIndex: -1,
+          timeLeft: 8,
           players: { p1: true },
-          spawns: {},
-          useAR: false
+          roundScores: { p1: 0, p2: 0 },
+          totalScores: { p1: 0, p2: 0 },
+          roundWinners: [null, null, null],
+          spawns: {}
         });
       }
 
-      const playerRef = ref(db, `rooms/${roomId}/players/${myPlayer}`);
-      await set(playerRef, true);
+      await set(ref(db, `rooms/${roomId}/players/${myPlayer}`), true);
       subscribeRoom();
     }
 
     function subscribeRoom() {
-      if (!hasFirebase || !roomId) return;
-
       if (roomStateUnsubscribe) {
         roomStateUnsubscribe();
         roomStateUnsubscribe = null;
       }
 
       const roomRef = ref(db, `rooms/${roomId}`);
-      const callback = async (snap) => {
+      const callback = (snap) => {
         const state = snap.val();
         if (!state) return;
-
-        scores = state.scores || { p1: 0, p2: 0 };
-        timeLeft = typeof state.timeLeft === 'number' ? state.timeLeft : GAME_DURATION;
+        currentState = state;
+        updateHUDFromState(state);
         renderPlayers(state);
-        roomCodeText.textContent = roomId;
-        updateHUD();
 
-        if (state.useAR && !arRequested && !arLocked) {
-          await enableCameraPreview();
-          lockArPlacement();
+        if (state.status === 'lobby') {
+          clearItems();
+          showScreen(lobbyScreen);
         }
 
-        if (!state.useAR && (arRequested || arLocked)) {
-          disableCameraPreview();
+        if (state.status === 'between_rounds') {
+          clearItems();
+          const round = ROUNDS[state.roundIndex];
+          transitionTitle.textContent = round.label;
+          transitionText.textContent = round.instruction;
+          transitionCountdown.textContent = `מתחיל בעוד ${state.timeLeft}...`;
+          showScreen(transitionScreen);
         }
 
-        if (state.status === 'playing' && !gameRunning) {
-          startRenderLoop();
+        if (state.status === 'playing') {
+          gameRunning = true;
+          transitionScreen.classList.add('hidden');
+          renderSpawns(state.spawns || {}, ROUNDS[state.roundIndex].key);
+        } else {
+          gameRunning = false;
         }
 
         if (state.status === 'ended') {
-          endGameFromState(state);
+          clearItems();
+          renderResults(state);
+          showScreen(endScreen);
         }
-
-        renderRemoteSpawns(state.spawns || {});
       };
 
       onValue(roomRef, callback);
       roomStateUnsubscribe = () => off(roomRef, 'value', callback);
     }
 
-    async function onFriesHit(fries, x, y) {
-      if (!gameRunning || !fries.isConnected) return;
+    function renderResults(state) {
+      const roundWinners = state.roundWinners || [null, null, null];
+      const totalScores = state.totalScores || { p1: 0, p2: 0 };
+      const wins = {
+        p1: roundWinners.filter((w) => w === 'p1').length,
+        p2: roundWinners.filter((w) => w === 'p2').length,
+      };
 
-      const spawnId = fries.dataset.spawnId || `local-${Date.now()}`;
-      activeFries.delete(fries);
-      fries.classList.add('hit');
-      setTimeout(() => fries.remove(), 220);
-      showFloating('+1', x + 24, y + 10);
+      const roundText = roundWinners.map((winner, index) => {
+        let label = 'תיקו';
+        if (winner === 'p1') label = 'Player 1';
+        if (winner === 'p2') label = 'Player 2';
+        return `<div class="results-row"><span>${ROUNDS[index].label}</span><strong>${label}</strong></div>`;
+      }).join('');
 
-      if (!hasFirebase) {
-        scores[myPlayer] = (scores[myPlayer] || 0) + 1;
-        const other = myPlayer === 'p1' ? 'p2' : 'p1';
-        scores[other] = (scores[other] || 0) + (Math.random() > 0.6 ? 1 : 0);
-        updateHUD();
-        return;
-      }
+      let finalWinner = 'יש תיקו';
+      if (wins.p1 > wins.p2) finalWinner = 'Player 1 ניצח בטורניר';
+      if (wins.p2 > wins.p1) finalWinner = 'Player 2 ניצח בטורניר';
 
-      const roomRef = ref(db, `rooms/${roomId}`);
-      const nextScores = { ...scores, [myPlayer]: (scores[myPlayer] || 0) + 1 };
-      await update(roomRef, {
-        scores: nextScores,
-        [`spawns/${spawnId}`]: null
-      });
+      resultsBlock.innerHTML = `
+        ${roundText}
+        <div class="results-row"><span>ניקוד כולל Player 1</span><strong>${totalScores.p1 || 0}</strong></div>
+        <div class="results-row"><span>ניקוד כולל Player 2</span><strong>${totalScores.p2 || 0}</strong></div>
+        <div class="results-row"><span>סיבובים שניצח Player 1</span><strong>${wins.p1}</strong></div>
+        <div class="results-row"><span>סיבובים שניצח Player 2</span><strong>${wins.p2}</strong></div>
+      `;
+      finalWinnerText.textContent = finalWinner;
     }
 
-    async function spawnLoop() {
-      if (!gameRunning) return;
-
-      const bounds = gameArea.getBoundingClientRect();
-      const size = 64;
-      const marginX = 18;
-      const marginTop = 20;
-      const marginBottom = 20;
-      const x = randomBetween(marginX, Math.max(marginX, bounds.width - size - marginX));
-      const y = randomBetween(marginTop, Math.max(marginTop, bounds.height - size - marginBottom));
-      const spawnId = hasFirebase
-        ? push(ref(db, `rooms/${roomId}/spawns`)).key
-        : `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const asset = GAME_ASSETS[Math.floor(Math.random() * GAME_ASSETS.length)];
-
-      if (hasFirebase) {
-        await update(ref(db, `rooms/${roomId}`), {
-          [`spawns/${spawnId}`]: { x, y, asset, createdAt: Date.now() }
-        });
-        setTimeout(async () => {
-          const roomRef = ref(db, `rooms/${roomId}/spawns/${spawnId}`);
-          const snap = await get(roomRef);
-          if (snap.exists()) {
-            await set(roomRef, null);
-          }
-        }, FRIES_LIFETIME);
-      } else {
-        spawnFriesElement(spawnId, x, y, asset);
-      }
-
-      spawnTimeout = setTimeout(spawnLoop, randomBetween(SPAWN_MIN, SPAWN_MAX));
-    }
-
-    function startRenderLoop() {
-      resetLocalGameState();
-      showScreen(loadingScreen);
-      statusPill.textContent = hasFirebase ? 'Firebase room active' : 'Demo mode active';
-      loadingCopy.innerHTML = arLocked
-        ? 'המשחק נטען מעל המצלמה…<br />הכינו את האצבעות.'
-        : 'המשחק נטען על השולחן…<br />הכינו את האצבעות.';
-
-      setTimeout(() => {
-        gameRunning = true;
-        loadingScreen.classList.add('hidden');
-        updateHUD();
-        spawnLoop();
-
-        if (!hasFirebase) {
-          tickInterval = setInterval(() => {
-            timeLeft -= 1;
-            updateHUD();
-            if (timeLeft <= 0) {
-              endGameLocal();
-            }
-          }, 1000);
+    async function hostGameTimer() {
+      clearInterval(tickInterval);
+      tickInterval = setInterval(async () => {
+        const roomRef = ref(db, `rooms/${roomId}`);
+        const snap = await get(roomRef);
+        const state = snap.val();
+        if (!state) {
+          clearInterval(tickInterval);
+          return;
         }
-      }, 900);
+
+        if (state.status === 'between_rounds') {
+          const next = (state.timeLeft || 0) - 1;
+          if (next <= 0) {
+            await update(roomRef, {
+              status: 'playing',
+              timeLeft: 8,
+              roundScores: { p1: 0, p2: 0 },
+              spawns: {}
+            });
+            spawnLoop();
+          } else {
+            await update(roomRef, { timeLeft: next });
+          }
+          return;
+        }
+
+        if (state.status === 'playing') {
+          const next = (state.timeLeft || 0) - 1;
+          if (next <= 0) {
+            clearTimeout(spawnTimeout);
+            const roundScores = state.roundScores || { p1: 0, p2: 0 };
+            let winner = null;
+            if ((roundScores.p1 || 0) > (roundScores.p2 || 0)) winner = 'p1';
+            if ((roundScores.p2 || 0) > (roundScores.p1 || 0)) winner = 'p2';
+
+            const roundWinners = [...(state.roundWinners || [null, null, null])];
+            roundWinners[state.roundIndex] = winner;
+
+            if (state.roundIndex >= 2) {
+              await update(roomRef, { status: 'ended', timeLeft: 0, roundWinners, spawns: {} });
+              clearInterval(tickInterval);
+            } else {
+              await update(roomRef, {
+                status: 'between_rounds',
+                roundIndex: state.roundIndex + 1,
+                timeLeft: 3,
+                roundScores: { p1: 0, p2: 0 },
+                roundWinners,
+                spawns: {}
+              });
+            }
+          } else {
+            await update(roomRef, { timeLeft: next });
+          }
+        }
+      }, 1000);
     }
 
-    async function startGame(useAR = false) {
-      if (useAR && !arLocked) {
-        backendNote.textContent = 'קודם פתחו מצב AR, קבעו על השולחן, ואז התחילו משחק AR.';
-        showScreen(lobbyScreen);
-        return;
-      }
-
-      if (!roomId) await ensureRoom();
-
-      if (!useAR && (arRequested || arLocked)) {
-        disableCameraPreview();
-      }
-
-      if (!hasFirebase) {
-        scores = { p1: 0, p2: 0 };
-        startRenderLoop();
-        return;
-      }
-
+    async function startTournament() {
+      if (!roomId) await createRoomIfNeeded();
       await update(ref(db, `rooms/${roomId}`), {
-        status: 'playing',
-        timeLeft: GAME_DURATION,
-        scores: { p1: 0, p2: 0 },
-        spawns: {},
-        useAR: Boolean(useAR)
+        status: 'between_rounds',
+        roundIndex: 0,
+        timeLeft: BETWEEN_ROUNDS,
+        roundScores: { p1: 0, p2: 0 },
+        totalScores: { p1: 0, p2: 0 },
+        roundWinners: [null, null, null],
+        spawns: {}
       });
 
-      if (myPlayer === 'p1') {
-        clearInterval(tickInterval);
-        tickInterval = setInterval(async () => {
-          const roomRef = ref(db, `rooms/${roomId}`);
-          const snap = await get(roomRef);
-          const state = snap.val();
-
-          if (!state || state.status !== 'playing') {
-            clearInterval(tickInterval);
-            return;
-          }
-
-          const nextTime = (state.timeLeft || 0) - 1;
-          if (nextTime <= 0) {
-            clearInterval(tickInterval);
-            await update(roomRef, { status: 'ended', timeLeft: 0, spawns: {}, useAR: false });
-          } else {
-            await update(roomRef, { timeLeft: nextTime });
-          }
-        }, 1000);
+      if (myPlayer === HOST_PLAYER) {
+        await hostGameTimer();
       }
-    }
-
-    function endGameLocal() {
-      gameRunning = false;
-      clearInterval(tickInterval);
-      clearTimeout(spawnTimeout);
-      clearActiveFries();
-      endGameFromState({ scores, timeLeft: 0 });
-    }
-
-    function endGameFromState(state) {
-      gameRunning = false;
-      clearInterval(tickInterval);
-      clearTimeout(spawnTimeout);
-      clearActiveFries();
-      scores = state.scores || scores;
-      timeLeft = 0;
-      updateHUD();
-
-      let winnerText = 'יש תיקו';
-      if ((scores.p1 || 0) > (scores.p2 || 0)) winnerText = 'Player 1 ניצח';
-      if ((scores.p2 || 0) > (scores.p1 || 0)) winnerText = 'Player 2 ניצח';
-
-      finalText.innerHTML = `Player 1: <strong>${scores.p1 || 0}</strong> נקודות<br />Player 2: <strong>${scores.p2 || 0}</strong> נקודות<br /><br /><strong>${winnerText}</strong>`;
-      if (arRequested || arLocked) {
-        disableCameraPreview();
-      }
-      showScreen(endScreen);
     }
 
     async function createRoomFlow() {
       myPlayer = 'p1';
       roomId = makeRoomId();
-      const nextUrl = `${window.location.pathname}?room=${roomId}&player=p1`;
-      history.replaceState({}, '', nextUrl);
-      await ensureRoom();
-      renderPlayers({ players: { p1: true, p2: hasFirebase ? false : true } });
+      history.replaceState({}, '', `${window.location.pathname}?room=${roomId}&player=p1`);
+      await createRoomIfNeeded();
       showScreen(lobbyScreen);
     }
 
@@ -1127,93 +619,50 @@
       roomId = (roomInput.value || '').trim().toUpperCase();
       if (!roomId) return;
       myPlayer = 'p2';
-      const nextUrl = `${window.location.pathname}?room=${roomId}&player=p2`;
-      history.replaceState({}, '', nextUrl);
-      await ensureRoom();
+      history.replaceState({}, '', `${window.location.pathname}?room=${roomId}&player=p2`);
+      await createRoomIfNeeded();
       showScreen(lobbyScreen);
     }
 
     async function copyLink() {
       if (!roomId) return;
-      const shareUrl = getShareUrl();
-
-      if (!shareUrl) {
-        backendNote.textContent = 'כדי שחבר יפתח את המשחק, צריך להריץ את הקובץ דרך GitHub Pages או כתובת https ציבורית.';
-        alert(`כרגע הקובץ לא רץ מכתובת ציבורית.\n\nאפשר בינתיים להצטרף ידנית עם קוד החדר: ${roomId}`);
-        return;
-      }
-
       try {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(shareUrl());
         copyLinkBtn.textContent = 'הקישור הועתק';
-        setTimeout(() => {
-          copyLinkBtn.textContent = 'העתק קישור לחבר';
-        }, 1600);
+        setTimeout(() => { copyLinkBtn.textContent = 'העתק קישור לחבר'; }, 1600);
       } catch {
-        alert(shareUrl);
+        alert(shareUrl());
       }
     }
 
     function runSelfChecks() {
-      console.assert(typeof GAME_DURATION === 'number', 'GAME_DURATION must be a number');
       console.assert(typeof makeRoomId() === 'string', 'makeRoomId must return a string');
       console.assert(makeRoomId().startsWith('MC'), 'room code should start with MC');
-      console.assert(hasFirebase === true, 'Firebase should be enabled with the provided config');
-      console.assert(FIREBASE_CONFIG.databaseURL.includes('firebaseio.com'), 'databaseURL should point to firebaseio.com');
-      console.assert(randomBetween(1, 2) >= 1 && randomBetween(1, 2) <= 2, 'randomBetween should stay within range');
-      console.assert(typeof getShareUrl === 'function', 'getShareUrl should exist');
-      console.assert(typeof enableCameraPreview === 'function', 'AR camera function should exist');
-      console.assert(typeof lockArPlacement === 'function', 'AR lock function should exist');
+      console.assert(ROUNDS.length === 3, 'should have exactly 3 rounds');
+      console.assert(typeof ASSETS.chips.src === 'string', 'chips asset should exist');
+      console.assert(typeof ASSETS.burger.src === 'string', 'burger asset should exist');
+      console.assert(typeof ASSETS.icecream.src === 'string', 'ice cream asset should exist');
+      console.assert(typeof shareUrl === 'function', 'shareUrl should exist');
     }
 
     createRoomBtn.addEventListener('click', createRoomFlow);
     joinRoomBtn.addEventListener('click', () => showScreen(joinScreen));
     confirmJoinBtn.addEventListener('click', joinRoomFlow);
     copyLinkBtn.addEventListener('click', copyLink);
-    arModeBtn.addEventListener('click', async () => {
-      if (arLocked) {
-        await startGame(true);
-        return;
-      }
-
-      showScreen(loadingScreen);
-      loadingCopy.innerHTML = 'פותח מצלמה…<br />כוונו לשולחן ואז לחצו על קיבוע.';
-      statusPill.textContent = 'AR setup';
-      const ok = await enableCameraPreview();
-      if (!ok) {
-        showScreen(lobbyScreen);
-        return;
-      }
-      loadingScreen.classList.add('hidden');
-      cameraOverlay.classList.add('active');
-      arControls.classList.add('active');
-      backendNote.textContent = 'מצב AR פתוח. עכשיו לחצו על "קבע על השולחן".';
-    });
-    playBtn.addEventListener('click', () => startGame(false));
+    startTournamentBtn.addEventListener('click', startTournament);
     restartBtn.addEventListener('click', () => showScreen(lobbyScreen));
     backBtn.addEventListener('click', () => showScreen(startScreen));
-    lockArBtn.addEventListener('click', lockArPlacement);
-    cancelArBtn.addEventListener('click', () => {
-      disableCameraPreview();
-      backendNote.textContent = 'ביטלת את מצב ה-AR.';
-      showScreen(lobbyScreen);
-    });
 
-    roomInput.value = roomId;
-    updateHUD();
     runSelfChecks();
-
-    if (!isPublicHttpUrl()) {
-      backendNote.textContent = 'כדי לשתף חבר בלינק ולעבוד עם מצלמה, צריך לפתוח את המשחק דרך GitHub Pages או Hosting אחר.';
-    }
+    updateHUDFromState({ totalScores: { p1: 0, p2: 0 }, timeLeft: 8, status: 'lobby' });
 
     if (roomId) {
-      ensureRoom().then(() => {
+      createRoomIfNeeded().then(() => {
         if (myPlayer !== 'p1' && myPlayer !== 'p2') myPlayer = 'p2';
         showScreen(lobbyScreen);
       }).catch((error) => {
-        console.error('Failed to initialize room:', error);
-        backendNote.textContent = 'Firebase מחובר, אבל הייתה תקלה בפתיחת החדר. בדקו הרשאות Realtime Database.';
+        console.error(error);
+        backendNote.textContent = 'הייתה תקלה בפתיחת החדר. בדקו את הרשאות Realtime Database.';
         showScreen(startScreen);
       });
     }
