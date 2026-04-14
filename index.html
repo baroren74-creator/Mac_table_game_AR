@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Catch the Fries Multiplayer</title>
+  <title>Catch the Fries AR Multiplayer</title>
   <style>
     :root {
       --mcd-red: #d61f26;
       --mcd-yellow: #ffbc0d;
       --mcd-dark: #222;
+      --mcd-wood-1: #a65c2e;
+      --mcd-wood-2: #8d4d25;
       --shadow: 0 10px 30px rgba(0,0,0,.15);
     }
 
@@ -45,7 +47,7 @@
 
     .topbar {
       position: relative;
-      z-index: 2;
+      z-index: 8;
       background: var(--mcd-red);
       color: white;
       padding: 14px 16px 18px;
@@ -109,20 +111,17 @@
       padding: 14px;
     }
 
-    .table {
+    .table-shell {
       position: relative;
       width: 100%;
       height: 100%;
       border-radius: 28px;
       overflow: hidden;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(255,255,255,.6), transparent 28%),
-        radial-gradient(circle at 80% 15%, rgba(255,255,255,.45), transparent 24%),
-        linear-gradient(180deg, #a65c2e 0%, #8d4d25 100%);
+      background: linear-gradient(180deg, #a65c2e 0%, #8d4d25 100%);
       box-shadow: inset 0 0 0 10px rgba(255,255,255,.18), inset 0 -8px 22px rgba(0,0,0,.12);
     }
 
-    .table::before {
+    .table-shell::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -131,15 +130,143 @@
         linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
       background-size: 100% 42px, 42px 100%;
       pointer-events: none;
-      opacity: .4;
+      opacity: .35;
+      z-index: 0;
     }
 
-    .table::after {
+    .table-shell::after {
       content: "";
       position: absolute;
       inset: 0;
       background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.14) 100%);
       pointer-events: none;
+      z-index: 0;
+    }
+
+    #cameraLayer {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 1;
+      background: #000;
+    }
+
+    #cameraLayer.active { display: block; }
+
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scaleX(-1);
+    }
+
+    #cameraOverlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 4;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.28));
+      pointer-events: none;
+    }
+
+    #cameraOverlay.active { display: flex; }
+
+    .scan-frame {
+      width: 74%;
+      max-width: 280px;
+      aspect-ratio: 1.35 / 1;
+      border: 3px dashed rgba(255,255,255,.95);
+      border-radius: 22px;
+      box-shadow: 0 0 0 999px rgba(0,0,0,.18);
+      background: rgba(255,255,255,.03);
+      position: relative;
+    }
+
+    .scan-frame::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,188,13,.95);
+    }
+
+    .scan-copy {
+      margin-top: 16px;
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 700;
+      text-shadow: 0 2px 6px rgba(0,0,0,.35);
+    }
+
+    .scan-subcopy {
+      margin-top: 8px;
+      font-size: 12px;
+      opacity: .92;
+    }
+
+    #arControls {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: none;
+      gap: 10px;
+      width: calc(100% - 28px);
+      max-width: 330px;
+      pointer-events: auto;
+    }
+
+    #arControls.active {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      background: var(--mcd-yellow);
+      color: #4b2a00;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.2);
+    }
+
+    .btn.secondary {
+      background: white;
+      color: var(--mcd-red);
+      margin-top: 10px;
+    }
+
+    .btn.small {
+      padding: 12px 16px;
+      font-size: 15px;
+    }
+
+    .btn:active { transform: translateY(1px) scale(.99); }
+
+    #tableSurface {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.6), transparent 28%),
+        radial-gradient(circle at 80% 15%, rgba(255,255,255,.45), transparent 24%),
+        linear-gradient(180deg, var(--mcd-wood-1) 0%, var(--mcd-wood-2) 100%);
+    }
+
+    #tableSurface.camera-mode {
+      background: transparent;
     }
 
     .plate {
@@ -149,6 +276,17 @@
       background: rgba(255,248,231,.72);
       border: 3px dashed rgba(255,255,255,.5);
       box-shadow: inset 0 0 30px rgba(255,255,255,.35);
+      z-index: 1;
+    }
+
+    .plate.camera-mode {
+      inset: 24% 10% 18%;
+      background: rgba(255,248,231,.18);
+      border: 3px solid rgba(255,255,255,.65);
+      box-shadow:
+        0 14px 40px rgba(0,0,0,.18),
+        inset 0 0 50px rgba(255,255,255,.18);
+      backdrop-filter: blur(1px);
     }
 
     .sticker {
@@ -161,7 +299,7 @@
       font-size: 12px;
       font-weight: 700;
       box-shadow: 0 6px 16px rgba(0,0,0,.15);
-      z-index: 1;
+      z-index: 6;
     }
 
     .bottom-tip {
@@ -175,7 +313,7 @@
       border-radius: 999px;
       font-size: 12px;
       font-weight: 700;
-      z-index: 2;
+      z-index: 6;
       box-shadow: 0 6px 16px rgba(0,0,0,.08);
       white-space: nowrap;
       max-width: calc(100% - 36px);
@@ -198,7 +336,7 @@
       transform-origin: center;
       animation: popIn .18s ease-out;
       filter: drop-shadow(0 8px 10px rgba(0,0,0,.22));
-      z-index: 3;
+      z-index: 7;
     }
 
     .fries .emoji {
@@ -223,7 +361,7 @@
       font-size: 14px;
       transform: translate(-50%, -50%);
       animation: floatUp .7s ease-out forwards;
-      z-index: 4;
+      z-index: 9;
       box-shadow: 0 8px 18px rgba(0,0,0,.18);
       pointer-events: none;
     }
@@ -235,7 +373,7 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
-      z-index: 5;
+      z-index: 10;
       background: linear-gradient(180deg, rgba(214,31,38,.92), rgba(214,31,38,.84));
       color: white;
       text-align: center;
@@ -262,27 +400,6 @@
       line-height: 1.5;
       opacity: .96;
     }
-
-    .btn {
-      appearance: none;
-      border: 0;
-      border-radius: 999px;
-      padding: 14px 22px;
-      background: var(--mcd-yellow);
-      color: #4b2a00;
-      font-size: 18px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 10px 20px rgba(0,0,0,.2);
-    }
-
-    .btn.secondary {
-      background: white;
-      color: var(--mcd-red);
-      margin-top: 10px;
-    }
-
-    .btn:active { transform: translateY(1px) scale(.99); }
 
     .subtitle {
       font-size: 13px;
@@ -341,6 +458,11 @@
       margin-top: 10px;
     }
 
+    .stacked-actions {
+      display: grid;
+      gap: 10px;
+    }
+
     @keyframes popIn {
       from { transform: scale(.65); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
@@ -367,6 +489,7 @@
       .fries .emoji { font-size: 46px; }
       .hud { gap: 6px; }
       .bottom-tip { font-size: 11px; padding: 7px 10px; }
+      .scan-copy { font-size: 14px; }
     }
   </style>
 </head>
@@ -394,10 +517,29 @@
     </div>
 
     <div class="game-wrap">
-      <div class="table" id="gameArea">
-        <div class="plate"></div>
+      <div class="table-shell">
+        <div id="cameraLayer">
+          <video id="cameraVideo" playsinline autoplay muted></video>
+        </div>
+
+        <div id="tableSurface"></div>
+        <div class="plate" id="plate"></div>
+
+        <div id="cameraOverlay">
+          <div class="scan-frame"></div>
+          <div class="scan-copy">כוונו לשולחן או למדבקה ולחצו על קיבוע</div>
+          <div class="scan-subcopy">זהו מצב AR קליל בתוך הממשק הקיים</div>
+        </div>
+
+        <div id="arControls">
+          <button class="btn" id="lockArBtn">קבע על השולחן</button>
+          <button class="btn secondary small" id="cancelArBtn">בטל AR</button>
+        </div>
+
         <div class="sticker" id="stickerText">Multiplayer Demo</div>
         <div class="bottom-tip" id="bottomTip">צרו שולחן, שתפו קישור, ושחקו יחד</div>
+
+        <div id="gameArea"></div>
       </div>
     </div>
 
@@ -414,7 +556,7 @@
     <div class="center-screen hidden" id="lobbyScreen">
       <div class="panel">
         <h1>🍟</h1>
-        <p>השולחן מוכן. שתפו את הקישור או תנו לחבר להקליד את קוד החדר.</p>
+        <p>השולחן מוכן. שתפו את הקישור, תנו לחבר להצטרף, ואז התחילו ב‑AR או בלי AR.</p>
         <div class="room-box">
           <div>קוד חדר</div>
           <div class="room-code" id="roomCodeText">----</div>
@@ -422,9 +564,12 @@
         <div class="players-list" id="playersList">
           <div class="player-chip">🟡 Player 1 <span>מחובר</span></div>
         </div>
-        <button class="btn" id="copyLinkBtn">העתק קישור לחבר</button>
-        <button class="btn secondary" id="playBtn">התחילו משחק</button>
-        <div class="small-note" id="backendNote">כרגע: עובד כגרסת דמו. למולטיפלייר אמיתי בין טלפונים, הוסיפו Firebase config.</div>
+        <div class="stacked-actions">
+          <button class="btn" id="copyLinkBtn">העתק קישור לחבר</button>
+          <button class="btn secondary" id="arModeBtn">התחילו עם AR</button>
+          <button class="btn secondary" id="playBtn">התחילו בלי AR</button>
+        </div>
+        <div class="small-note" id="backendNote">Firebase מחובר. אפשר לשתף קישור ולשחק משני טלפונים.</div>
       </div>
     </div>
 
@@ -444,7 +589,7 @@
     <div class="center-screen hidden" id="loadingScreen">
       <div class="panel">
         <h1>✨</h1>
-        <p>המשחק נטען על השולחן…<br />הכינו את האצבעות.</p>
+        <p id="loadingCopy">המשחק נטען על השולחן…<br />הכינו את האצבעות.</p>
         <div class="status-pill" id="statusPill">Loading room...</div>
       </div>
     </div>
@@ -454,7 +599,7 @@
         <h1>🏁</h1>
         <p id="finalText">סיימתם את הסיבוב</p>
         <button class="btn" id="restartBtn">ללובי</button>
-        <div class="subtitle">השלב הבא: לחבר Firebase ולהפוך את זה לריל-טיים אמיתי</div>
+        <div class="subtitle">מוכן להצגה, עם מצב AR קליל בתוך המשחק</div>
       </div>
     </div>
   </div>
@@ -501,6 +646,14 @@
     const FRIES_LIFETIME = 1300;
 
     const gameArea = document.getElementById('gameArea');
+    const cameraLayer = document.getElementById('cameraLayer');
+    const cameraVideo = document.getElementById('cameraVideo');
+    const cameraOverlay = document.getElementById('cameraOverlay');
+    const arControls = document.getElementById('arControls');
+    const plate = document.getElementById('plate');
+    const tableSurface = document.getElementById('tableSurface');
+    const loadingCopy = document.getElementById('loadingCopy');
+
     const timeValue = document.getElementById('timeValue');
     const scoreValue1 = document.getElementById('scoreValue1');
     const scoreValue2 = document.getElementById('scoreValue2');
@@ -513,6 +666,7 @@
     const finalText = document.getElementById('finalText');
     const statusPill = document.getElementById('statusPill');
     const backendNote = document.getElementById('backendNote');
+    const bottomTip = document.getElementById('bottomTip');
 
     const startScreen = document.getElementById('startScreen');
     const lobbyScreen = document.getElementById('lobbyScreen');
@@ -524,11 +678,12 @@
     const joinRoomBtn = document.getElementById('joinRoomBtn');
     const confirmJoinBtn = document.getElementById('confirmJoinBtn');
     const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const arModeBtn = document.getElementById('arModeBtn');
     const playBtn = document.getElementById('playBtn');
     const restartBtn = document.getElementById('restartBtn');
     const backBtn = document.getElementById('backBtn');
-
-    const HOSTING_BASE_URL = ''; // לדוגמה: 'https://yourname.github.io/project-name/'
+    const lockArBtn = document.getElementById('lockArBtn');
+    const cancelArBtn = document.getElementById('cancelArBtn');
 
     const urlParams = new URLSearchParams(window.location.search);
     let roomId = (urlParams.get('room') || '').toUpperCase();
@@ -538,6 +693,9 @@
     let timeLeft = GAME_DURATION;
     let tickInterval = null;
     let spawnTimeout = null;
+    let cameraStream = null;
+    let arRequested = false;
+    let arLocked = false;
     const activeFries = new Set();
     let scores = { p1: 0, p2: 0 };
 
@@ -546,14 +704,8 @@
     }
 
     function getShareUrl() {
-      if (HOSTING_BASE_URL) {
-        const base = HOSTING_BASE_URL.replace(/\/$/, '');
-        return `${base}/?room=${roomId}&player=p2`;
-      }
-      if (isPublicHttpUrl()) {
-        return `${window.location.origin}${window.location.pathname}?room=${roomId}&player=p2`;
-      }
-      return '';
+      if (!isPublicHttpUrl()) return '';
+      return `${window.location.origin}${window.location.pathname}?room=${roomId}&player=p2`;
     }
 
     function showScreen(screen) {
@@ -568,6 +720,9 @@
       scoreLabel1.textContent = myPlayer === 'p1' ? 'אתם' : 'Player 1';
       scoreLabel2.textContent = myPlayer === 'p2' ? 'אתם' : 'Player 2';
       stickerText.textContent = roomId ? `Room ${roomId}` : 'Multiplayer Demo';
+      bottomTip.textContent = arLocked
+        ? 'מצב AR פעיל · המשחק מוצג מעל המצלמה'
+        : 'צרו שולחן, שתפו קישור, ושחקו יחד';
     }
 
     function clearActiveFries() {
@@ -618,70 +773,52 @@
       setTimeout(() => el.remove(), 700);
     }
 
-    async function ensureRoom() {
-      if (!roomId) roomId = makeRoomId();
-      roomCodeText.textContent = roomId;
+    function setArVisualState(enabled) {
+      arLocked = enabled;
+      tableSurface.classList.toggle('camera-mode', enabled || arRequested);
+      plate.classList.toggle('camera-mode', enabled || arRequested);
+      cameraLayer.classList.toggle('active', enabled || arRequested);
       updateHUD();
-
-      if (!hasFirebase) {
-        backendNote.textContent = 'כרגע: זו הדמיית מולטיפלייר. כדי ששני טלפונים יתעדכנו בזמן אמת, מדביקים Firebase config בקוד.';
-        renderPlayers({ players: { p1: true, p2: true } });
-        return;
-      }
-
-      backendNote.textContent = 'Firebase מחובר. אפשר לשתף קישור ולשחק משני טלפונים.';
-      const roomRef = ref(db, `rooms/${roomId}`);
-      const snap = await get(roomRef);
-
-      if (!snap.exists()) {
-        await set(roomRef, {
-          createdAt: Date.now(),
-          status: 'lobby',
-          timeLeft: GAME_DURATION,
-          scores: { p1: 0, p2: 0 },
-          players: { p1: true },
-          spawns: {},
-          lastHitAt: null
-        });
-      }
-
-      const playerRef = ref(db, `rooms/${roomId}/players/${myPlayer}`);
-      await set(playerRef, true);
-      subscribeRoom();
     }
 
-    function subscribeRoom() {
-      if (!hasFirebase || !roomId) return;
-
-      if (roomStateUnsubscribe) {
-        roomStateUnsubscribe();
-        roomStateUnsubscribe = null;
+    async function enableCameraPreview() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        backendNote.textContent = 'המצלמה לא נתמכת במכשיר הזה.';
+        return false;
       }
-
-      const roomRef = ref(db, `rooms/${roomId}`);
-      const callback = (snap) => {
-        const state = snap.val();
-        if (!state) return;
-
-        scores = state.scores || { p1: 0, p2: 0 };
-        timeLeft = typeof state.timeLeft === 'number' ? state.timeLeft : GAME_DURATION;
-        renderPlayers(state);
-        roomCodeText.textContent = roomId;
-        updateHUD();
-
-        if (state.status === 'playing' && !gameRunning) {
-          startRenderLoop();
+      try {
+        if (!cameraStream) {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+          });
+          cameraVideo.srcObject = cameraStream;
         }
+        arRequested = true;
+        cameraOverlay.classList.add('active');
+        arControls.classList.add('active');
+        setArVisualState(true);
+        return true;
+      } catch (error) {
+        console.error('Camera error:', error);
+        backendNote.textContent = 'לא הצלחתי לפתוח מצלמה. בדקו הרשאת מצלמה ב-Safari/Chrome.';
+        return false;
+      }
+    }
 
-        if (state.status === 'ended') {
-          endGameFromState(state);
-        }
+    function disableCameraPreview() {
+      arRequested = false;
+      arLocked = false;
+      cameraOverlay.classList.remove('active');
+      arControls.classList.remove('active');
+      setArVisualState(false);
+    }
 
-        renderRemoteSpawns(state.spawns || {});
-      };
-
-      onValue(roomRef, callback);
-      roomStateUnsubscribe = () => off(roomRef, 'value', callback);
+    function lockArPlacement() {
+      arLocked = true;
+      cameraOverlay.classList.remove('active');
+      arControls.classList.remove('active');
+      setArVisualState(true);
     }
 
     function renderRemoteSpawns(spawns) {
@@ -716,6 +853,90 @@
       }, { passive: false });
       gameArea.appendChild(fries);
       activeFries.add(fries);
+
+      if (!hasFirebase) {
+        setTimeout(() => {
+          if (fries.isConnected) {
+            activeFries.delete(fries);
+            fries.remove();
+          }
+        }, FRIES_LIFETIME);
+      }
+    }
+
+    async function ensureRoom() {
+      if (!roomId) roomId = makeRoomId();
+      roomCodeText.textContent = roomId;
+      updateHUD();
+
+      if (!hasFirebase) {
+        backendNote.textContent = 'כרגע: זו הדמיית מולטיפלייר. כדי ששני טלפונים יתעדכנו בזמן אמת, צריך Firebase פעיל.';
+        renderPlayers({ players: { p1: true, p2: true } });
+        return;
+      }
+
+      backendNote.textContent = 'Firebase מחובר. אפשר לשתף קישור ולשחק משני טלפונים.';
+      const roomRef = ref(db, `rooms/${roomId}`);
+      const snap = await get(roomRef);
+
+      if (!snap.exists()) {
+        await set(roomRef, {
+          createdAt: Date.now(),
+          status: 'lobby',
+          timeLeft: GAME_DURATION,
+          scores: { p1: 0, p2: 0 },
+          players: { p1: true },
+          spawns: {},
+          useAR: false
+        });
+      }
+
+      const playerRef = ref(db, `rooms/${roomId}/players/${myPlayer}`);
+      await set(playerRef, true);
+      subscribeRoom();
+    }
+
+    function subscribeRoom() {
+      if (!hasFirebase || !roomId) return;
+
+      if (roomStateUnsubscribe) {
+        roomStateUnsubscribe();
+        roomStateUnsubscribe = null;
+      }
+
+      const roomRef = ref(db, `rooms/${roomId}`);
+      const callback = async (snap) => {
+        const state = snap.val();
+        if (!state) return;
+
+        scores = state.scores || { p1: 0, p2: 0 };
+        timeLeft = typeof state.timeLeft === 'number' ? state.timeLeft : GAME_DURATION;
+        renderPlayers(state);
+        roomCodeText.textContent = roomId;
+        updateHUD();
+
+        if (state.useAR && !arRequested && !arLocked) {
+          await enableCameraPreview();
+          lockArPlacement();
+        }
+
+        if (!state.useAR && (arRequested || arLocked)) {
+          disableCameraPreview();
+        }
+
+        if (state.status === 'playing' && !gameRunning) {
+          startRenderLoop();
+        }
+
+        if (state.status === 'ended') {
+          endGameFromState(state);
+        }
+
+        renderRemoteSpawns(state.spawns || {});
+      };
+
+      onValue(roomRef, callback);
+      roomStateUnsubscribe = () => off(roomRef, 'value', callback);
     }
 
     async function onFriesHit(fries, x, y) {
@@ -739,8 +960,7 @@
       const nextScores = { ...scores, [myPlayer]: (scores[myPlayer] || 0) + 1 };
       await update(roomRef, {
         scores: nextScores,
-        [`spawns/${spawnId}`]: null,
-        lastHitAt: Date.now()
+        [`spawns/${spawnId}`]: null
       });
     }
 
@@ -750,8 +970,8 @@
       const bounds = gameArea.getBoundingClientRect();
       const size = 64;
       const marginX = 18;
-      const marginTop = 90;
-      const marginBottom = 70;
+      const marginTop = arLocked ? 140 : 90;
+      const marginBottom = arLocked ? 110 : 70;
       const x = randomBetween(marginX, Math.max(marginX, bounds.width - size - marginX));
       const y = randomBetween(marginTop, Math.max(marginTop, bounds.height - size - marginBottom));
       const spawnId = hasFirebase
@@ -762,15 +982,15 @@
         await update(ref(db, `rooms/${roomId}`), {
           [`spawns/${spawnId}`]: { x, y, createdAt: Date.now() }
         });
-      } else {
-        spawnFriesElement(spawnId, x, y);
-        setTimeout(() => {
-          const el = document.querySelector(`[data-spawn-id="${spawnId}"]`);
-          if (el) {
-            activeFries.delete(el);
-            el.remove();
+        setTimeout(async () => {
+          const roomRef = ref(db, `rooms/${roomId}/spawns/${spawnId}`);
+          const snap = await get(roomRef);
+          if (snap.exists()) {
+            await set(roomRef, null);
           }
         }, FRIES_LIFETIME);
+      } else {
+        spawnFriesElement(spawnId, x, y);
       }
 
       spawnTimeout = setTimeout(spawnLoop, randomBetween(SPAWN_MIN, SPAWN_MAX));
@@ -780,6 +1000,9 @@
       resetLocalGameState();
       showScreen(loadingScreen);
       statusPill.textContent = hasFirebase ? 'Firebase room active' : 'Demo mode active';
+      loadingCopy.innerHTML = arLocked
+        ? 'המשחק נטען מעל המצלמה…<br />הכינו את האצבעות.'
+        : 'המשחק נטען על השולחן…<br />הכינו את האצבעות.';
 
       setTimeout(() => {
         gameRunning = true;
@@ -799,8 +1022,16 @@
       }, 900);
     }
 
-    async function startGame() {
+    async function startGame(useAR = false) {
       if (!roomId) await ensureRoom();
+
+      if (useAR) {
+        const ok = await enableCameraPreview();
+        if (!ok) return;
+        lockArPlacement();
+      } else if (arRequested || arLocked) {
+        disableCameraPreview();
+      }
 
       if (!hasFirebase) {
         scores = { p1: 0, p2: 0 };
@@ -812,7 +1043,8 @@
         status: 'playing',
         timeLeft: GAME_DURATION,
         scores: { p1: 0, p2: 0 },
-        spawns: {}
+        spawns: {},
+        useAR: Boolean(useAR)
       });
 
       if (myPlayer === 'p1') {
@@ -830,7 +1062,7 @@
           const nextTime = (state.timeLeft || 0) - 1;
           if (nextTime <= 0) {
             clearInterval(tickInterval);
-            await update(roomRef, { status: 'ended', timeLeft: 0, spawns: {} });
+            await update(roomRef, { status: 'ended', timeLeft: 0, spawns: {}, useAR: false });
           } else {
             await update(roomRef, { timeLeft: nextTime });
           }
@@ -860,6 +1092,9 @@
       if ((scores.p2 || 0) > (scores.p1 || 0)) winnerText = 'Player 2 ניצח';
 
       finalText.innerHTML = `Player 1: <strong>${scores.p1 || 0}</strong> נקודות<br />Player 2: <strong>${scores.p2 || 0}</strong> נקודות<br /><br /><strong>${winnerText}</strong>`;
+      if (arRequested || arLocked) {
+        disableCameraPreview();
+      }
       showScreen(endScreen);
     }
 
@@ -888,10 +1123,8 @@
       const shareUrl = getShareUrl();
 
       if (!shareUrl) {
-        backendNote.textContent = 'כדי שחבר יפתח את המשחק, צריך להעלות את הקובץ ללינק ציבורי כמו GitHub Pages. כרגע זה רץ מקומית מהמחשב שלך.';
-        alert(`כרגע הקובץ רץ מקומית ולכן אי אפשר לשלוח קישור עובד לחבר.
-
-אפשר בינתיים להצטרף ידנית עם קוד החדר: ${roomId}`);
+        backendNote.textContent = 'כדי שחבר יפתח את המשחק, צריך להריץ את הקובץ דרך GitHub Pages או כתובת https ציבורית.';
+        alert(`כרגע הקובץ לא רץ מכתובת ציבורית.\n\nאפשר בינתיים להצטרף ידנית עם קוד החדר: ${roomId}`);
         return;
       }
 
@@ -914,26 +1147,28 @@
       console.assert(FIREBASE_CONFIG.databaseURL.includes('firebaseio.com'), 'databaseURL should point to firebaseio.com');
       console.assert(randomBetween(1, 2) >= 1 && randomBetween(1, 2) <= 2, 'randomBetween should stay within range');
       console.assert(typeof getShareUrl === 'function', 'getShareUrl should exist');
-      if (HOSTING_BASE_URL) {
-        console.assert(getShareUrl().includes('?room='), 'Hosted share URL should contain room params');
-      }
+      console.assert(typeof enableCameraPreview === 'function', 'AR camera function should exist');
+      console.assert(typeof lockArPlacement === 'function', 'AR lock function should exist');
     }
 
     createRoomBtn.addEventListener('click', createRoomFlow);
     joinRoomBtn.addEventListener('click', () => showScreen(joinScreen));
     confirmJoinBtn.addEventListener('click', joinRoomFlow);
     copyLinkBtn.addEventListener('click', copyLink);
-    playBtn.addEventListener('click', startGame);
+    arModeBtn.addEventListener('click', () => startGame(true));
+    playBtn.addEventListener('click', () => startGame(false));
     restartBtn.addEventListener('click', () => showScreen(lobbyScreen));
     backBtn.addEventListener('click', () => showScreen(startScreen));
+    lockArBtn.addEventListener('click', lockArPlacement);
+    cancelArBtn.addEventListener('click', disableCameraPreview);
 
     roomInput.value = roomId;
     updateHUD();
-
-    if (!isPublicHttpUrl() && !HOSTING_BASE_URL) {
-      backendNote.textContent = 'הקובץ פתוח מקומית. כדי לשתף חבר בלינק, צריך להעלות אותו ל-GitHub Pages או Hosting אחר. בינתיים אפשר לבדוק על אותו מכשיר או להצטרף ידנית עם קוד חדר.';
-    }
     runSelfChecks();
+
+    if (!isPublicHttpUrl()) {
+      backendNote.textContent = 'כדי לשתף חבר בלינק ולעבוד עם מצלמה, צריך לפתוח את המשחק דרך GitHub Pages או Hosting אחר.';
+    }
 
     if (roomId) {
       ensureRoom().then(() => {
