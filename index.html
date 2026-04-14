@@ -5,96 +5,524 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Catch the Fries AR Multiplayer</title>
   <style>
-    :root{
-      --red:#d61f26;--yellow:#ffbc0d;--dark:#222;--wood1:#a65c2e;--wood2:#8d4d25;
-      --shadow:0 10px 30px rgba(0,0,0,.15)
+    :root {
+      --mcd-red: #d61f26;
+      --mcd-yellow: #ffbc0d;
+      --mcd-dark: #222;
+      --mcd-wood-1: #a65c2e;
+      --mcd-wood-2: #8d4d25;
+      --shadow: 0 10px 30px rgba(0,0,0,.15);
     }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:Arial,Helvetica,sans-serif;background:radial-gradient(circle at top,#ffe29a 0%,#ffd34d 35%,#ffbc0d 100%);color:var(--dark)}
-    body{display:flex;align-items:center;justify-content:center;padding:12px}
-    .phone{position:relative;width:min(100%,430px);height:min(100dvh - 24px,860px);background:linear-gradient(180deg,#fff4d0 0%,#fffaf0 100%);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;border:8px solid rgba(255,255,255,.65)}
-    .topbar{position:relative;z-index:8;background:var(--red);color:#fff;padding:14px 16px 18px;border-bottom-left-radius:24px;border-bottom-right-radius:24px;box-shadow:0 8px 20px rgba(214,31,38,.25)}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;margin-bottom:12px}
-    .arches{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--yellow);color:var(--red);font-size:18px;font-weight:900;flex-shrink:0}
-    .hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-    .stat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:10px 8px;text-align:center;backdrop-filter:blur(8px)}
-    .stat .label{font-size:12px;opacity:.9;margin-bottom:4px}
-    .stat .value{font-size:20px;font-weight:800}
-    .game-wrap{position:relative;height:calc(100% - 128px);padding:14px}
-    .table-shell{position:relative;width:100%;height:100%;border-radius:28px;overflow:hidden;background:linear-gradient(180deg,var(--wood1) 0%,var(--wood2) 100%);box-shadow:inset 0 0 0 10px rgba(255,255,255,.18), inset 0 -8px 22px rgba(0,0,0,.12)}
-    .table-shell::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);background-size:100% 42px,42px 100%;pointer-events:none;opacity:.35;z-index:0}
-    .table-shell::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at center,transparent 45%,rgba(0,0,0,.14) 100%);pointer-events:none;z-index:0}
-    #cameraLayer{position:absolute;inset:0;display:none;z-index:1;background:#000}
-    #cameraLayer.active{display:block}
-    #cameraVideo{width:100%;height:100%;object-fit:cover;display:block}
-    #cameraOverlay{position:absolute;inset:0;display:none;z-index:5;align-items:center;justify-content:center;flex-direction:column;padding:20px;text-align:center;color:#fff;background:linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.28));pointer-events:none}
-    #cameraOverlay.active{display:flex}
-    .scan-frame{width:74%;max-width:280px;aspect-ratio:1.35/1;border:3px dashed rgba(255,255,255,.95);border-radius:22px;box-shadow:0 0 0 999px rgba(0,0,0,.18);background:rgba(255,255,255,.03);position:relative}
-    .scan-frame::before{content:"";position:absolute;inset:10px;border-radius:16px;border:2px solid rgba(255,188,13,.95)}
-    .scan-copy{margin-top:16px;font-size:15px;line-height:1.45;font-weight:700;text-shadow:0 2px 6px rgba(0,0,0,.35)}
-    .scan-subcopy{margin-top:8px;font-size:12px;opacity:.92}
-    #arControls{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:6;display:none;gap:10px;width:calc(100% - 28px);max-width:330px}
-    #arControls.active{display:grid;grid-template-columns:1fr}
-    .btn{appearance:none;border:0;border-radius:999px;padding:14px 22px;background:var(--yellow);color:#4b2a00;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 10px 20px rgba(0,0,0,.2)}
-    .btn.secondary{background:#fff;color:var(--red);margin-top:10px}
-    .btn.small{padding:12px 16px;font-size:15px}
-    .btn:active{transform:translateY(1px) scale(.99)}
-    #tableSurface{position:absolute;inset:0;z-index:2;background:radial-gradient(circle at 20% 20%,rgba(255,255,255,.6),transparent 28%),radial-gradient(circle at 80% 15%,rgba(255,255,255,.45),transparent 24%),linear-gradient(180deg,var(--wood1) 0%,var(--wood2) 100%)}
-    #tableSurface.camera-mode{background:transparent}
-    .plate{position:absolute;inset:14% 7% 9%;border-radius:26px;background:rgba(255,248,231,.72);border:3px dashed rgba(255,255,255,.5);box-shadow:inset 0 0 30px rgba(255,255,255,.35);z-index:3}
-    .plate.camera-mode{inset:24% 10% 18%;background:rgba(255,248,231,.18);border:3px solid rgba(255,255,255,.65);box-shadow:0 14px 40px rgba(0,0,0,.18), inset 0 0 50px rgba(255,255,255,.18);backdrop-filter:blur(1px)}
-    .sticker{position:absolute;bottom:18px;right:18px;background:rgba(255,255,255,.9);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.15);z-index:7}
-    .bottom-tip{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(255,255,255,.85);color:#7a4500;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;z-index:7;box-shadow:0 6px 16px rgba(0,0,0,.08);white-space:nowrap;max-width:calc(100% - 36px);overflow:hidden;text-overflow:ellipsis}
-    #gameArea{position:absolute;inset:0;z-index:8}
-    .fries{position:absolute;width:64px;height:64px;display:flex;align-items:center;justify-content:center;user-select:none;cursor:pointer;border:0;background:transparent;padding:0;transform-origin:center;animation:popIn .18s ease-out;filter:drop-shadow(0 8px 10px rgba(0,0,0,.22));z-index:8}
-    .fries .emoji{font-size:52px;line-height:1;transform:rotate(var(--rot));display:inline-block}
-    .fries.hit{animation:hitFx .25s ease-out forwards;pointer-events:none}
-    .floating{position:absolute;font-weight:800;color:#fff;background:rgba(214,31,38,.92);padding:6px 10px;border-radius:999px;font-size:14px;transform:translate(-50%,-50%);animation:floatUp .7s ease-out forwards;z-index:9;box-shadow:0 8px 18px rgba(0,0,0,.18);pointer-events:none}
-    .center-screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;z-index:10;background:linear-gradient(180deg,rgba(214,31,38,.92),rgba(214,31,38,.84));color:#fff;text-align:center;transition:.25s ease}
-    .center-screen.hidden{opacity:0;pointer-events:none;transform:scale(1.02)}
-    .panel{max-width:330px}
-    .panel h1{margin:0 0 10px;font-size:36px;line-height:1}
-    .panel p{margin:0 0 16px;font-size:16px;line-height:1.5;opacity:.96}
-    .subtitle{font-size:13px;margin-top:12px;opacity:.85}
-    .pulse{animation:pulse 1s infinite ease-in-out}
-    .players-list{display:grid;gap:10px;margin:18px 0 14px;text-align:right}
-    .player-chip{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:10px 14px;font-weight:700}
-    .player-chip span{opacity:.8;font-weight:400}
-    .small-note{font-size:12px;opacity:.88;margin-top:10px;line-height:1.4}
-    .room-box{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:12px;margin:14px 0}
-    .room-code{font-size:28px;font-weight:900;letter-spacing:2px;margin-top:6px}
-    .status-pill{display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;font-size:12px;margin-top:10px}
-    .stacked-actions{display:grid;gap:10px}
-    @keyframes popIn{from{transform:scale(.65);opacity:0}to{transform:scale(1);opacity:1}}
-    @keyframes hitFx{to{transform:scale(1.25);opacity:0}}
-    @keyframes floatUp{0%{opacity:0;transform:translate(-50%,-35%)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-140%)}}
-    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-    @media (max-width:380px){
-      .panel h1{font-size:30px}.fries{width:56px;height:56px}.fries .emoji{font-size:46px}.hud{gap:6px}.bottom-tip{font-size:11px;padding:7px 10px}.scan-copy{font-size:14px}
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top, #ffe29a 0%, #ffd34d 35%, #ffbc0d 100%);
+      color: var(--mcd-dark);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .phone {
+      position: relative;
+      width: min(100%, 430px);
+      height: min(100dvh - 24px, 860px);
+      background: linear-gradient(180deg, #fff4d0 0%, #fffaf0 100%);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 8px solid rgba(255,255,255,.65);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 8;
+      background: var(--mcd-red);
+      color: white;
+      padding: 14px 16px 18px;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      box-shadow: 0 8px 20px rgba(214,31,38,.25);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .arches {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--mcd-yellow);
+      color: var(--mcd-red);
+      font-size: 18px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 10px 8px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .stat .label {
+      font-size: 12px;
+      opacity: .9;
+      margin-bottom: 4px;
+    }
+
+    .stat .value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .game-wrap {
+      position: relative;
+      height: calc(100% - 128px);
+      padding: 14px;
+    }
+
+    .table-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #a65c2e 0%, #8d4d25 100%);
+      box-shadow: inset 0 0 0 10px rgba(255,255,255,.18), inset 0 -8px 22px rgba(0,0,0,.12);
+    }
+
+    .table-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 100% 42px, 42px 100%;
+      pointer-events: none;
+      opacity: .35;
+      z-index: 0;
+    }
+
+    .table-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.14) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #cameraLayer {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 1;
+      background: #000;
+    }
+
+    #cameraLayer.active { display: block; }
+
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scaleX(-1);
+    }
+
+    #cameraOverlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 4;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+      background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.28));
+      pointer-events: none;
+    }
+
+    #cameraOverlay.active { display: flex; }
+
+    .scan-frame {
+      width: 74%;
+      max-width: 280px;
+      aspect-ratio: 1.35 / 1;
+      border: 3px dashed rgba(255,255,255,.95);
+      border-radius: 22px;
+      box-shadow: 0 0 0 999px rgba(0,0,0,.18);
+      background: rgba(255,255,255,.03);
+      position: relative;
+    }
+
+    .scan-frame::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,188,13,.95);
+    }
+
+    .scan-copy {
+      margin-top: 16px;
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 700;
+      text-shadow: 0 2px 6px rgba(0,0,0,.35);
+    }
+
+    .scan-subcopy {
+      margin-top: 8px;
+      font-size: 12px;
+      opacity: .92;
+    }
+
+    #arControls {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: none;
+      gap: 10px;
+      width: calc(100% - 28px);
+      max-width: 330px;
+      pointer-events: auto;
+    }
+
+    #arControls.active {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      background: var(--mcd-yellow);
+      color: #4b2a00;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.2);
+    }
+
+    .btn.secondary {
+      background: white;
+      color: var(--mcd-red);
+      margin-top: 10px;
+    }
+
+    .btn.small {
+      padding: 12px 16px;
+      font-size: 15px;
+    }
+
+    .btn:active { transform: translateY(1px) scale(.99); }
+
+    #tableSurface {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.6), transparent 28%),
+        radial-gradient(circle at 80% 15%, rgba(255,255,255,.45), transparent 24%),
+        linear-gradient(180deg, var(--mcd-wood-1) 0%, var(--mcd-wood-2) 100%);
+    }
+
+    #tableSurface.camera-mode {
+      background: transparent;
+    }
+
+    .plate {
+      display:none;
+    }
+
+    .plate.camera-mode {
+      inset: 24% 10% 18%;
+      background: rgba(255,248,231,.18);
+      border: 3px solid rgba(255,255,255,.65);
+      box-shadow:
+        0 14px 40px rgba(0,0,0,.18),
+        inset 0 0 50px rgba(255,255,255,.18);
+      backdrop-filter: blur(1px);
+    }
+
+    .sticker {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      background: rgba(255,255,255,.9);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 6px 16px rgba(0,0,0,.15);
+      z-index: 6;
+    }
+
+    .bottom-tip {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,.85);
+      color: #7a4500;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 6;
+      box-shadow: 0 6px 16px rgba(0,0,0,.08);
+      white-space: nowrap;
+      max-width: calc(100% - 36px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fries {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      cursor: pointer;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      transform-origin: center;
+      animation: popIn .18s ease-out;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.22));
+      z-index: 7;
+    }
+
+    .fries .emoji {
+      font-size: 52px;
+      line-height: 1;
+      transform: rotate(var(--rot));
+      display: inline-block;
+    }
+
+    .fries.hit {
+      animation: hitFx .25s ease-out forwards;
+      pointer-events: none;
+    }
+
+    .floating {
+      position: absolute;
+      font-weight: 800;
+      color: white;
+      background: rgba(214,31,38,.92);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 14px;
+      transform: translate(-50%, -50%);
+      animation: floatUp .7s ease-out forwards;
+      z-index: 9;
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+      pointer-events: none;
+    }
+
+    .center-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(214,31,38,.92), rgba(214,31,38,.84));
+      color: white;
+      text-align: center;
+      transition: .25s ease;
+    }
+
+    .center-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.02);
+    }
+
+    .panel { max-width: 330px; }
+
+    .panel h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    .panel p {
+      margin: 0 0 16px;
+      font-size: 16px;
+      line-height: 1.5;
+      opacity: .96;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      margin-top: 12px;
+      opacity: .85;
+    }
+
+    .pulse { animation: pulse 1s infinite ease-in-out; }
+
+    .players-list {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 14px;
+      text-align: right;
+    }
+
+    .player-chip {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+
+    .player-chip span { opacity: .8; font-weight: 400; }
+
+    .small-note {
+      font-size: 12px;
+      opacity: .88;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .room-box {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 12px;
+      margin: 14px 0;
+    }
+
+    .room-code {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-top: 6px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .stacked-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(.65); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes hitFx {
+      to { transform: scale(1.25); opacity: 0; }
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translate(-50%, -35%); }
+      15% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -140%); }
+    }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @media (max-width: 380px) {
+      .panel h1 { font-size: 30px; }
+      .fries { width: 56px; height: 56px; }
+      .fries .emoji { font-size: 46px; }
+      .hud { gap: 6px; }
+      .bottom-tip { font-size: 11px; padding: 7px 10px; }
+      .scan-copy { font-size: 14px; }
     }
   </style>
 </head>
 <body>
   <div class="phone">
     <div class="topbar">
-      <div class="brand"><span class="arches">M</span><span>Catch the Fries</span></div>
+      <div class="brand">
+        <span class="arches">M</span>
+        <span>Catch the Fries</span>
+      </div>
       <div class="hud">
-        <div class="stat"><div class="label">זמן</div><div class="value" id="timeValue">20</div></div>
-        <div class="stat"><div class="label" id="scoreLabel1">Player 1</div><div class="value" id="scoreValue1">0</div></div>
-        <div class="stat"><div class="label" id="scoreLabel2">Player 2</div><div class="value" id="scoreValue2">0</div></div>
+        <div class="stat">
+          <div class="label">זמן</div>
+          <div class="value" id="timeValue">20</div>
+        </div>
+        <div class="stat">
+          <div class="label" id="scoreLabel1">Player 1</div>
+          <div class="value" id="scoreValue1">0</div>
+        </div>
+        <div class="stat">
+          <div class="label" id="scoreLabel2">Player 2</div>
+          <div class="value" id="scoreValue2">0</div>
+        </div>
       </div>
     </div>
 
     <div class="game-wrap">
       <div class="table-shell">
-        <div id="cameraLayer"><video id="cameraVideo" playsinline autoplay muted></video></div>
+        <div id="cameraLayer">
+          <video id="cameraVideo" playsinline autoplay muted></video>
+        </div>
+
         <div id="tableSurface"></div>
         <div class="plate" id="plate"></div>
 
         <div id="cameraOverlay">
           <div class="scan-frame"></div>
           <div class="scan-copy">כוונו לשולחן או למדבקה ולחצו על קיבוע</div>
-          <div class="scan-subcopy">מצב AR קליל בתוך הממשק הקיים</div>
+          <div class="scan-subcopy">זהו מצב AR קליל בתוך הממשק הקיים</div>
         </div>
 
         <div id="arControls">
@@ -104,6 +532,7 @@
 
         <div class="sticker" id="stickerText">Multiplayer Demo</div>
         <div class="bottom-tip" id="bottomTip">צרו שולחן, שתפו קישור, ושחקו יחד</div>
+
         <div id="gameArea"></div>
       </div>
     </div>
@@ -121,9 +550,14 @@
     <div class="center-screen hidden" id="lobbyScreen">
       <div class="panel">
         <h1>🍟</h1>
-        <p>השולחן מוכן. שתפו את הקישור, תנו לחבר להצטרף, ואז התחילו עם AR או בלי AR.</p>
-        <div class="room-box"><div>קוד חדר</div><div class="room-code" id="roomCodeText">----</div></div>
-        <div class="players-list" id="playersList"><div class="player-chip">🟡 Player 1 <span>מחובר</span></div></div>
+        <p>השולחן מוכן. שתפו את הקישור, תנו לחבר להצטרף, ואז התחילו ב‑AR או בלי AR.</p>
+        <div class="room-box">
+          <div>קוד חדר</div>
+          <div class="room-code" id="roomCodeText">----</div>
+        </div>
+        <div class="players-list" id="playersList">
+          <div class="player-chip">🟡 Player 1 <span>מחובר</span></div>
+        </div>
         <div class="stacked-actions">
           <button class="btn" id="copyLinkBtn">העתק קישור לחבר</button>
           <button class="btn secondary" id="arModeBtn">התחילו עם AR</button>
@@ -166,7 +600,16 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getDatabase, ref, set, get, update, onValue, off, push } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      update,
+      onValue,
+      off,
+      push
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
     const FIREBASE_CONFIG = Object.freeze({
       apiKey: 'AIzaSyB9sgQBeHOxc9U3syWWtAiipoGQB8dE7Xg',
@@ -179,7 +622,12 @@
       measurementId: 'G-HDHX6E6L84'
     });
 
-    const hasFirebase = Boolean(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL && FIREBASE_CONFIG.projectId);
+    const hasFirebase = Boolean(
+      FIREBASE_CONFIG.apiKey &&
+      FIREBASE_CONFIG.databaseURL &&
+      FIREBASE_CONFIG.projectId
+    );
+
     let db = null;
     if (hasFirebase) {
       const app = initializeApp(FIREBASE_CONFIG);
@@ -199,6 +647,7 @@
     const plate = document.getElementById('plate');
     const tableSurface = document.getElementById('tableSurface');
     const loadingCopy = document.getElementById('loadingCopy');
+
     const timeValue = document.getElementById('timeValue');
     const scoreValue1 = document.getElementById('scoreValue1');
     const scoreValue2 = document.getElementById('scoreValue2');
@@ -212,11 +661,13 @@
     const statusPill = document.getElementById('statusPill');
     const backendNote = document.getElementById('backendNote');
     const bottomTip = document.getElementById('bottomTip');
+
     const startScreen = document.getElementById('startScreen');
     const lobbyScreen = document.getElementById('lobbyScreen');
     const joinScreen = document.getElementById('joinScreen');
     const loadingScreen = document.getElementById('loadingScreen');
     const endScreen = document.getElementById('endScreen');
+
     const createRoomBtn = document.getElementById('createRoomBtn');
     const joinRoomBtn = document.getElementById('joinRoomBtn');
     const confirmJoinBtn = document.getElementById('confirmJoinBtn');
@@ -239,8 +690,8 @@
     let cameraStream = null;
     let arRequested = false;
     let arLocked = false;
-    let scores = { p1: 0, p2: 0 };
     const activeFries = new Set();
+    let scores = { p1: 0, p2: 0 };
 
     function isPublicHttpUrl() {
       return window.location.protocol === 'http:' || window.location.protocol === 'https:';
@@ -263,7 +714,9 @@
       scoreLabel1.textContent = myPlayer === 'p1' ? 'אתם' : 'Player 1';
       scoreLabel2.textContent = myPlayer === 'p2' ? 'אתם' : 'Player 2';
       stickerText.textContent = roomId ? `Room ${roomId}` : 'Multiplayer Demo';
-      bottomTip.textContent = arLocked ? 'מצב AR פעיל · המשחק מוצג מעל המצלמה' : 'צרו שולחן, שתפו קישור, ושחקו יחד';
+      bottomTip.textContent = arLocked
+        ? 'מצב AR פעיל · המשחק מוצג מעל המצלמה'
+        : 'צרו שולחן, שתפו קישור, ושחקו יחד';
     }
 
     function clearActiveFries() {
@@ -288,7 +741,9 @@
     function makeRoomId() {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let out = 'MC';
-      for (let i = 0; i < 2; i += 1) out += chars[Math.floor(Math.random() * chars.length)];
+      for (let i = 0; i < 2; i += 1) {
+        out += chars[Math.floor(Math.random() * chars.length)];
+      }
       return out;
     }
 
@@ -358,10 +813,12 @@
       cameraOverlay.classList.remove('active');
       arControls.classList.remove('active');
       setArVisualState(true);
+      alert('השולחן ננעל ✔ עכשיו המשחק יתפרס על כל המסך');
     }
 
     function renderRemoteSpawns(spawns) {
       const knownIds = new Set(Object.keys(spawns));
+
       activeFries.forEach((el) => {
         if (!knownIds.has(el.dataset.spawnId)) {
           activeFries.delete(el);
@@ -424,11 +881,13 @@
           timeLeft: GAME_DURATION,
           scores: { p1: 0, p2: 0 },
           players: { p1: true },
-          spawns: {}
+          spawns: {},
+          useAR: false
         });
       }
 
-      await set(ref(db, `rooms/${roomId}/players/${myPlayer}`), true);
+      const playerRef = ref(db, `rooms/${roomId}/players/${myPlayer}`);
+      await set(playerRef, true);
       subscribeRoom();
     }
 
@@ -441,7 +900,7 @@
       }
 
       const roomRef = ref(db, `rooms/${roomId}`);
-      const callback = (snap) => {
+      const callback = async (snap) => {
         const state = snap.val();
         if (!state) return;
 
@@ -451,8 +910,23 @@
         roomCodeText.textContent = roomId;
         updateHUD();
 
-        if (state.status === 'playing' && !gameRunning) startRenderLoop();
-        if (state.status === 'ended') endGameFromState(state);
+        if (state.useAR && !arRequested && !arLocked) {
+          await enableCameraPreview();
+          lockArPlacement();
+        }
+
+        if (!state.useAR && (arRequested || arLocked)) {
+          disableCameraPreview();
+        }
+
+        if (state.status === 'playing' && !gameRunning) {
+          startRenderLoop();
+        }
+
+        if (state.status === 'ended') {
+          endGameFromState(state);
+        }
+
         renderRemoteSpawns(state.spawns || {});
       };
 
@@ -477,8 +951,9 @@
         return;
       }
 
+      const roomRef = ref(db, `rooms/${roomId}`);
       const nextScores = { ...scores, [myPlayer]: (scores[myPlayer] || 0) + 1 };
-      await update(ref(db, `rooms/${roomId}`), {
+      await update(roomRef, {
         scores: nextScores,
         [`spawns/${spawnId}`]: null
       });
@@ -490,20 +965,24 @@
       const bounds = gameArea.getBoundingClientRect();
       const size = 64;
       const marginX = 18;
-      const marginTop = arLocked ? 140 : 90;
-      const marginBottom = arLocked ? 110 : 70;
+      const marginTop = 20;
+      const marginBottom = 20;
       const x = randomBetween(marginX, Math.max(marginX, bounds.width - size - marginX));
       const y = randomBetween(marginTop, Math.max(marginTop, bounds.height - size - marginBottom));
-      const spawnId = hasFirebase ? push(ref(db, `rooms/${roomId}/spawns`)).key : `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const spawnId = hasFirebase
+        ? push(ref(db, `rooms/${roomId}/spawns`)).key
+        : `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
       if (hasFirebase) {
         await update(ref(db, `rooms/${roomId}`), {
           [`spawns/${spawnId}`]: { x, y, createdAt: Date.now() }
         });
         setTimeout(async () => {
-          const spawnRef = ref(db, `rooms/${roomId}/spawns/${spawnId}`);
-          const snap = await get(spawnRef);
-          if (snap.exists()) await set(spawnRef, null);
+          const roomRef = ref(db, `rooms/${roomId}/spawns/${spawnId}`);
+          const snap = await get(roomRef);
+          if (snap.exists()) {
+            await set(roomRef, null);
+          }
         }, FRIES_LIFETIME);
       } else {
         spawnFriesElement(spawnId, x, y);
@@ -516,7 +995,9 @@
       resetLocalGameState();
       showScreen(loadingScreen);
       statusPill.textContent = hasFirebase ? 'Firebase room active' : 'Demo mode active';
-      loadingCopy.innerHTML = arLocked ? 'המשחק נטען מעל המצלמה…<br />הכינו את האצבעות.' : 'המשחק נטען על השולחן…<br />הכינו את האצבעות.';
+      loadingCopy.innerHTML = arLocked
+        ? 'המשחק נטען מעל המצלמה…<br />הכינו את האצבעות.'
+        : 'המשחק נטען על השולחן…<br />הכינו את האצבעות.';
 
       setTimeout(() => {
         gameRunning = true;
@@ -528,13 +1009,19 @@
           tickInterval = setInterval(() => {
             timeLeft -= 1;
             updateHUD();
-            if (timeLeft <= 0) endGameLocal();
+            if (timeLeft <= 0) {
+              endGameLocal();
+            }
           }, 1000);
         }
       }, 900);
     }
 
     async function startGame(useAR = false) {
+      if (useAR && !arLocked) {
+        alert('קודם צריך ללחוץ על קבע על השולחן');
+        return;
+      }
       if (!roomId) await ensureRoom();
 
       if (useAR) {
@@ -555,7 +1042,8 @@
         status: 'playing',
         timeLeft: GAME_DURATION,
         scores: { p1: 0, p2: 0 },
-        spawns: {}
+        spawns: {},
+        useAR: Boolean(useAR)
       });
 
       if (myPlayer === 'p1') {
@@ -573,7 +1061,7 @@
           const nextTime = (state.timeLeft || 0) - 1;
           if (nextTime <= 0) {
             clearInterval(tickInterval);
-            await update(roomRef, { status: 'ended', timeLeft: 0, spawns: {} });
+            await update(roomRef, { status: 'ended', timeLeft: 0, spawns: {}, useAR: false });
           } else {
             await update(roomRef, { timeLeft: nextTime });
           }
@@ -603,14 +1091,17 @@
       if ((scores.p2 || 0) > (scores.p1 || 0)) winnerText = 'Player 2 ניצח';
 
       finalText.innerHTML = `Player 1: <strong>${scores.p1 || 0}</strong> נקודות<br />Player 2: <strong>${scores.p2 || 0}</strong> נקודות<br /><br /><strong>${winnerText}</strong>`;
-      if (arRequested || arLocked) disableCameraPreview();
+      if (arRequested || arLocked) {
+        disableCameraPreview();
+      }
       showScreen(endScreen);
     }
 
     async function createRoomFlow() {
       myPlayer = 'p1';
       roomId = makeRoomId();
-      history.replaceState({}, '', `${window.location.pathname}?room=${roomId}&player=p1`);
+      const nextUrl = `${window.location.pathname}?room=${roomId}&player=p1`;
+      history.replaceState({}, '', nextUrl);
       await ensureRoom();
       renderPlayers({ players: { p1: true, p2: hasFirebase ? false : true } });
       showScreen(lobbyScreen);
@@ -620,7 +1111,8 @@
       roomId = (roomInput.value || '').trim().toUpperCase();
       if (!roomId) return;
       myPlayer = 'p2';
-      history.replaceState({}, '', `${window.location.pathname}?room=${roomId}&player=p2`);
+      const nextUrl = `${window.location.pathname}?room=${roomId}&player=p2`;
+      history.replaceState({}, '', nextUrl);
       await ensureRoom();
       showScreen(lobbyScreen);
     }
@@ -628,6 +1120,7 @@
     async function copyLink() {
       if (!roomId) return;
       const shareUrl = getShareUrl();
+
       if (!shareUrl) {
         backendNote.textContent = 'כדי שחבר יפתח את המשחק, צריך להריץ את הקובץ דרך GitHub Pages או כתובת https ציבורית.';
         alert(`כרגע הקובץ לא רץ מכתובת ציבורית.\n\nאפשר בינתיים להצטרף ידנית עם קוד החדר: ${roomId}`);
@@ -637,7 +1130,9 @@
       try {
         await navigator.clipboard.writeText(shareUrl);
         copyLinkBtn.textContent = 'הקישור הועתק';
-        setTimeout(() => { copyLinkBtn.textContent = 'העתק קישור לחבר'; }, 1600);
+        setTimeout(() => {
+          copyLinkBtn.textContent = 'העתק קישור לחבר';
+        }, 1600);
       } catch {
         alert(shareUrl);
       }
@@ -647,7 +1142,7 @@
       console.assert(typeof GAME_DURATION === 'number', 'GAME_DURATION must be a number');
       console.assert(typeof makeRoomId() === 'string', 'makeRoomId must return a string');
       console.assert(makeRoomId().startsWith('MC'), 'room code should start with MC');
-      console.assert(hasFirebase === true, 'Firebase should be enabled');
+      console.assert(hasFirebase === true, 'Firebase should be enabled with the provided config');
       console.assert(FIREBASE_CONFIG.databaseURL.includes('firebaseio.com'), 'databaseURL should point to firebaseio.com');
       console.assert(randomBetween(1, 2) >= 1 && randomBetween(1, 2) <= 2, 'randomBetween should stay within range');
       console.assert(typeof getShareUrl === 'function', 'getShareUrl should exist');
