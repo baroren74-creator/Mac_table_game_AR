@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Catch the Fries Multiplayer</title>
+  <style>
+    :root {
+      --mcd-red: #d61f26;
+      --mcd-yellow: #ffbc0d;
+      --mcd-dark: #222;
+      --shadow: 0 10px 30px rgba(0,0,0,.15);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at top, #ffe29a 0%, #ffd34d 35%, #ffbc0d 100%);
+      color: var(--mcd-dark);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+    }
+
+    .phone {
+      position: relative;
+      width: min(100%, 430px);
+      height: min(100dvh - 24px, 860px);
+      background: linear-gradient(180deg, #fff4d0 0%, #fffaf0 100%);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 8px solid rgba(255,255,255,.65);
+    }
+
+    .topbar {
+      position: relative;
+      z-index: 2;
+      background: var(--mcd-red);
+      color: white;
+      padding: 14px 16px 18px;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      box-shadow: 0 8px 20px rgba(214,31,38,.25);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .arches {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--mcd-yellow);
+      color: var(--mcd-red);
+      font-size: 18px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 10px 8px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .stat .label {
+      font-size: 12px;
+      opacity: .9;
+      margin-bottom: 4px;
+    }
+
+    .stat .value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .game-wrap {
+      position: relative;
+      height: calc(100% - 128px);
+      padding: 14px;
+    }
+
+    .table {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.6), transparent 28%),
+        radial-gradient(circle at 80% 15%, rgba(255,255,255,.45), transparent 24%),
+        linear-gradient(180deg, #a65c2e 0%, #8d4d25 100%);
+      box-shadow: inset 0 0 0 10px rgba(255,255,255,.18), inset 0 -8px 22px rgba(0,0,0,.12);
+    }
+
+    .table::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 100% 42px, 42px 100%;
+      pointer-events: none;
+      opacity: .4;
+    }
+
+    .table::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.14) 100%);
+      pointer-events: none;
+    }
+
+    .plate {
+      position: absolute;
+      inset: 14% 7% 9%;
+      border-radius: 26px;
+      background: rgba(255,248,231,.72);
+      border: 3px dashed rgba(255,255,255,.5);
+      box-shadow: inset 0 0 30px rgba(255,255,255,.35);
+    }
+
+    .sticker {
+      position: absolute;
+      bottom: 18px;
+      right: 18px;
+      background: rgba(255,255,255,.9);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 6px 16px rgba(0,0,0,.15);
+      z-index: 1;
+    }
+
+    .bottom-tip {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,.85);
+      color: #7a4500;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 2;
+      box-shadow: 0 6px 16px rgba(0,0,0,.08);
+      white-space: nowrap;
+      max-width: calc(100% - 36px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fries {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      cursor: pointer;
+      border: 0;
+      background: transparent;
+      padding: 0;
+      transform-origin: center;
+      animation: popIn .18s ease-out;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.22));
+      z-index: 3;
+    }
+
+    .fries .emoji {
+      font-size: 52px;
+      line-height: 1;
+      transform: rotate(var(--rot));
+      display: inline-block;
+    }
+
+    .fries.hit {
+      animation: hitFx .25s ease-out forwards;
+      pointer-events: none;
+    }
+
+    .floating {
+      position: absolute;
+      font-weight: 800;
+      color: white;
+      background: rgba(214,31,38,.92);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 14px;
+      transform: translate(-50%, -50%);
+      animation: floatUp .7s ease-out forwards;
+      z-index: 4;
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+      pointer-events: none;
+    }
+
+    .center-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 5;
+      background: linear-gradient(180deg, rgba(214,31,38,.92), rgba(214,31,38,.84));
+      color: white;
+      text-align: center;
+      transition: .25s ease;
+    }
+
+    .center-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.02);
+    }
+
+    .panel { max-width: 330px; }
+
+    .panel h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+      line-height: 1;
+    }
+
+    .panel p {
+      margin: 0 0 16px;
+      font-size: 16px;
+      line-height: 1.5;
+      opacity: .96;
+    }
+
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      background: var(--mcd-yellow);
+      color: #4b2a00;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.2);
+    }
+
+    .btn.secondary {
+      background: white;
+      color: var(--mcd-red);
+      margin-top: 10px;
+    }
+
+    .btn:active { transform: translateY(1px) scale(.99); }
+
+    .subtitle {
+      font-size: 13px;
+      margin-top: 12px;
+      opacity: .85;
+    }
+
+    .pulse { animation: pulse 1s infinite ease-in-out; }
+
+    .players-list {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 14px;
+      text-align: right;
+    }
+
+    .player-chip {
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 10px 14px;
+      font-weight: 700;
+    }
+
+    .player-chip span { opacity: .8; font-weight: 400; }
+
+    .small-note {
+      font-size: 12px;
+      opacity: .88;
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    .room-box {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 16px;
+      padding: 12px;
+      margin: 14px 0;
+    }
+
+    .room-code {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin-top: 6px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(.65); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes hitFx {
+      to { transform: scale(1.25); opacity: 0; }
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translate(-50%, -35%); }
+      15% { opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -140%); }
+    }
+
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @media (max-width: 380px) {
+      .panel h1 { font-size: 30px; }
+      .fries { width: 56px; height: 56px; }
+      .fries .emoji { font-size: 46px; }
+      .hud { gap: 6px; }
+      .bottom-tip { font-size: 11px; padding: 7px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <div class="brand">
+        <span class="arches">M</span>
+        <span>Catch the Fries</span>
+      </div>
+      <div class="hud">
+        <div class="stat">
+          <div class="label">זמן</div>
+          <div class="value" id="timeValue">20</div>
+        </div>
+        <div class="stat">
+          <div class="label" id="scoreLabel1">Player 1</div>
+          <div class="value" id="scoreValue1">0</div>
+        </div>
+        <div class="stat">
+          <div class="label" id="scoreLabel2">Player 2</div>
+          <div class="value" id="scoreValue2">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-wrap">
+      <div class="table" id="gameArea">
+        <div class="plate"></div>
+        <div class="sticker" id="stickerText">Multiplayer Demo</div>
+        <div class="bottom-tip" id="bottomTip">צרו שולחן, שתפו קישור, ושחקו יחד</div>
+      </div>
+    </div>
+
+    <div class="center-screen" id="startScreen">
+      <div class="panel">
+        <h1>📱</h1>
+        <p>פתחו שולחן משחק קצר בזמן ההמתנה לאוכל, ושלחו לחבר להצטרף מאותו קישור.</p>
+        <button class="btn pulse" id="createRoomBtn">פתחו שולחן</button>
+        <button class="btn secondary" id="joinRoomBtn">הצטרפו לשולחן קיים</button>
+        <div class="subtitle">Multiplayer-ready MVP</div>
+      </div>
+    </div>
+
+    <div class="center-screen hidden" id="lobbyScreen">
+      <div class="panel">
+        <h1>🍟</h1>
+        <p>השולחן מוכן. שתפו את הקישור או תנו לחבר להקליד את קוד החדר.</p>
+        <div class="room-box">
+          <div>קוד חדר</div>
+          <div class="room-code" id="roomCodeText">----</div>
+        </div>
+        <div class="players-list" id="playersList">
+          <div class="player-chip">🟡 Player 1 <span>מחובר</span></div>
+        </div>
+        <button class="btn" id="copyLinkBtn">העתק קישור לחבר</button>
+        <button class="btn secondary" id="playBtn">התחילו משחק</button>
+        <div class="small-note" id="backendNote">כרגע: עובד כגרסת דמו. למולטיפלייר אמיתי בין טלפונים, הוסיפו Firebase config.</div>
+      </div>
+    </div>
+
+    <div class="center-screen hidden" id="joinScreen">
+      <div class="panel">
+        <h1>🔗</h1>
+        <p>הכניסו קוד חדר כדי להצטרף.</p>
+        <div class="room-box">
+          <input id="roomInput" type="text" inputmode="text" placeholder="למשל: MC42" style="width:100%; border:0; border-radius:12px; padding:14px; font-size:22px; text-align:center; font-weight:800;" maxlength="6" />
+        </div>
+        <button class="btn" id="confirmJoinBtn">הצטרפו</button>
+        <button class="btn secondary" id="backBtn">חזרה</button>
+        <div class="small-note">אם תפתחו מהקישור המשותף, הקוד יתמלא לבד.</div>
+      </div>
+    </div>
+
+    <div class="center-screen hidden" id="loadingScreen">
+      <div class="panel">
+        <h1>✨</h1>
+        <p>המשחק נטען על השולחן…<br />הכינו את האצבעות.</p>
+        <div class="status-pill" id="statusPill">Loading room...</div>
+      </div>
+    </div>
+
+    <div class="center-screen hidden" id="endScreen">
+      <div class="panel">
+        <h1>🏁</h1>
+        <p id="finalText">סיימתם את הסיבוב</p>
+        <button class="btn" id="restartBtn">ללובי</button>
+        <div class="subtitle">השלב הבא: לחבר Firebase ולהפוך את זה לריל-טיים אמיתי</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      update,
+      onValue,
+      off,
+      push
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+    const FIREBASE_CONFIG = Object.freeze({
+      apiKey: 'AIzaSyB9sgQBeHOxc9U3syWWtAiipoGQB8dE7Xg',
+      authDomain: 'table-game-web.firebaseapp.com',
+      databaseURL: 'https://table-game-web-default-rtdb.firebaseio.com',
+      projectId: 'table-game-web',
+      storageBucket: 'table-game-web.firebasestorage.app',
+      messagingSenderId: '1035098157788',
+      appId: '1:1035098157788:web:77178d06f2640d87e4fa19',
+      measurementId: 'G-HDHX6E6L84'
+    });
+
+    const hasFirebase = Boolean(
+      FIREBASE_CONFIG.apiKey &&
+      FIREBASE_CONFIG.databaseURL &&
+      FIREBASE_CONFIG.projectId
+    );
+
+    let db = null;
+    if (hasFirebase) {
+      const app = initializeApp(FIREBASE_CONFIG);
+      db = getDatabase(app);
+    }
+
+    const GAME_DURATION = 20;
+    const SPAWN_MIN = 350;
+    const SPAWN_MAX = 700;
+    const FRIES_LIFETIME = 1300;
+
+    const gameArea = document.getElementById('gameArea');
+    const timeValue = document.getElementById('timeValue');
+    const scoreValue1 = document.getElementById('scoreValue1');
+    const scoreValue2 = document.getElementById('scoreValue2');
+    const scoreLabel1 = document.getElementById('scoreLabel1');
+    const scoreLabel2 = document.getElementById('scoreLabel2');
+    const stickerText = document.getElementById('stickerText');
+    const playersList = document.getElementById('playersList');
+    const roomCodeText = document.getElementById('roomCodeText');
+    const roomInput = document.getElementById('roomInput');
+    const finalText = document.getElementById('finalText');
+    const statusPill = document.getElementById('statusPill');
+    const backendNote = document.getElementById('backendNote');
+
+    const startScreen = document.getElementById('startScreen');
+    const lobbyScreen = document.getElementById('lobbyScreen');
+    const joinScreen = document.getElementById('joinScreen');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const endScreen = document.getElementById('endScreen');
+
+    const createRoomBtn = document.getElementById('createRoomBtn');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const confirmJoinBtn = document.getElementById('confirmJoinBtn');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const playBtn = document.getElementById('playBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const backBtn = document.getElementById('backBtn');
+
+    const HOSTING_BASE_URL = ''; // לדוגמה: 'https://yourname.github.io/project-name/'
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let roomId = (urlParams.get('room') || '').toUpperCase();
+    let myPlayer = urlParams.get('player') || 'p1';
+    let roomStateUnsubscribe = null;
+    let gameRunning = false;
+    let timeLeft = GAME_DURATION;
+    let tickInterval = null;
+    let spawnTimeout = null;
+    const activeFries = new Set();
+    let scores = { p1: 0, p2: 0 };
+
+    function isPublicHttpUrl() {
+      return window.location.protocol === 'http:' || window.location.protocol === 'https:';
+    }
+
+    function getShareUrl() {
+      if (HOSTING_BASE_URL) {
+        const base = HOSTING_BASE_URL.replace(/\/$/, '');
+        return `${base}/?room=${roomId}&player=p2`;
+      }
+      if (isPublicHttpUrl()) {
+        return `${window.location.origin}${window.location.pathname}?room=${roomId}&player=p2`;
+      }
+      return '';
+    }
+
+    function showScreen(screen) {
+      [startScreen, lobbyScreen, joinScreen, loadingScreen, endScreen].forEach((el) => el.classList.add('hidden'));
+      screen.classList.remove('hidden');
+    }
+
+    function updateHUD() {
+      timeValue.textContent = String(timeLeft);
+      scoreValue1.textContent = String(scores.p1 || 0);
+      scoreValue2.textContent = String(scores.p2 || 0);
+      scoreLabel1.textContent = myPlayer === 'p1' ? 'אתם' : 'Player 1';
+      scoreLabel2.textContent = myPlayer === 'p2' ? 'אתם' : 'Player 2';
+      stickerText.textContent = roomId ? `Room ${roomId}` : 'Multiplayer Demo';
+    }
+
+    function clearActiveFries() {
+      activeFries.forEach((el) => el.remove());
+      activeFries.clear();
+      document.querySelectorAll('.floating').forEach((el) => el.remove());
+    }
+
+    function resetLocalGameState() {
+      gameRunning = false;
+      timeLeft = GAME_DURATION;
+      clearInterval(tickInterval);
+      clearTimeout(spawnTimeout);
+      clearActiveFries();
+      updateHUD();
+    }
+
+    function randomBetween(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function makeRoomId() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let out = 'MC';
+      for (let i = 0; i < 2; i += 1) {
+        out += chars[Math.floor(Math.random() * chars.length)];
+      }
+      return out;
+    }
+
+    function renderPlayers(state = null) {
+      const p1Ready = state?.players?.p1;
+      const p2Ready = state?.players?.p2;
+      const rows = [];
+      if (p1Ready) rows.push('<div class="player-chip">🟡 Player 1 <span>מחובר</span></div>');
+      if (p2Ready) rows.push('<div class="player-chip">🔴 Player 2 <span>מחובר</span></div>');
+      if (!rows.length) rows.push('<div class="player-chip">🟡 Player 1 <span>מחובר</span></div>');
+      playersList.innerHTML = rows.join('');
+    }
+
+    function showFloating(text, x, y) {
+      const el = document.createElement('div');
+      el.className = 'floating';
+      el.textContent = text;
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      gameArea.appendChild(el);
+      setTimeout(() => el.remove(), 700);
+    }
+
+    async function ensureRoom() {
+      if (!roomId) roomId = makeRoomId();
+      roomCodeText.textContent = roomId;
+      updateHUD();
+
+      if (!hasFirebase) {
+        backendNote.textContent = 'כרגע: זו הדמיית מולטיפלייר. כדי ששני טלפונים יתעדכנו בזמן אמת, מדביקים Firebase config בקוד.';
+        renderPlayers({ players: { p1: true, p2: true } });
+        return;
+      }
+
+      backendNote.textContent = 'Firebase מחובר. אפשר לשתף קישור ולשחק משני טלפונים.';
+      const roomRef = ref(db, `rooms/${roomId}`);
+      const snap = await get(roomRef);
+
+      if (!snap.exists()) {
+        await set(roomRef, {
+          createdAt: Date.now(),
+          status: 'lobby',
+          timeLeft: GAME_DURATION,
+          scores: { p1: 0, p2: 0 },
+          players: { p1: true },
+          spawns: {},
+          lastHitAt: null
+        });
+      }
+
+      const playerRef = ref(db, `rooms/${roomId}/players/${myPlayer}`);
+      await set(playerRef, true);
+      subscribeRoom();
+    }
+
+    function subscribeRoom() {
+      if (!hasFirebase || !roomId) return;
+
+      if (roomStateUnsubscribe) {
+        roomStateUnsubscribe();
+        roomStateUnsubscribe = null;
+      }
+
+      const roomRef = ref(db, `rooms/${roomId}`);
+      const callback = (snap) => {
+        const state = snap.val();
+        if (!state) return;
+
+        scores = state.scores || { p1: 0, p2: 0 };
+        timeLeft = typeof state.timeLeft === 'number' ? state.timeLeft : GAME_DURATION;
+        renderPlayers(state);
+        roomCodeText.textContent = roomId;
+        updateHUD();
+
+        if (state.status === 'playing' && !gameRunning) {
+          startRenderLoop();
+        }
+
+        if (state.status === 'ended') {
+          endGameFromState(state);
+        }
+
+        renderRemoteSpawns(state.spawns || {});
+      };
+
+      onValue(roomRef, callback);
+      roomStateUnsubscribe = () => off(roomRef, 'value', callback);
+    }
+
+    function renderRemoteSpawns(spawns) {
+      const knownIds = new Set(Object.keys(spawns));
+
+      activeFries.forEach((el) => {
+        if (!knownIds.has(el.dataset.spawnId)) {
+          activeFries.delete(el);
+          el.remove();
+        }
+      });
+
+      Object.entries(spawns).forEach(([spawnId, spawn]) => {
+        if (document.querySelector(`[data-spawn-id="${spawnId}"]`)) return;
+        spawnFriesElement(spawnId, spawn.x, spawn.y);
+      });
+    }
+
+    function spawnFriesElement(spawnId, x, y) {
+      const fries = document.createElement('button');
+      fries.type = 'button';
+      fries.className = 'fries';
+      fries.dataset.spawnId = spawnId;
+      fries.setAttribute('aria-label', 'Fries');
+      fries.innerHTML = `<span class="emoji" style="--rot:${Math.floor(randomBetween(-18, 18))}deg">🍟</span>`;
+      fries.style.left = `${x}px`;
+      fries.style.top = `${y}px`;
+      fries.addEventListener('click', () => onFriesHit(fries, x, y));
+      fries.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        onFriesHit(fries, x, y);
+      }, { passive: false });
+      gameArea.appendChild(fries);
+      activeFries.add(fries);
+    }
+
+    async function onFriesHit(fries, x, y) {
+      if (!gameRunning || !fries.isConnected) return;
+
+      const spawnId = fries.dataset.spawnId || `local-${Date.now()}`;
+      activeFries.delete(fries);
+      fries.classList.add('hit');
+      setTimeout(() => fries.remove(), 220);
+      showFloating('+1', x + 24, y + 10);
+
+      if (!hasFirebase) {
+        scores[myPlayer] = (scores[myPlayer] || 0) + 1;
+        const other = myPlayer === 'p1' ? 'p2' : 'p1';
+        scores[other] = (scores[other] || 0) + (Math.random() > 0.6 ? 1 : 0);
+        updateHUD();
+        return;
+      }
+
+      const roomRef = ref(db, `rooms/${roomId}`);
+      const nextScores = { ...scores, [myPlayer]: (scores[myPlayer] || 0) + 1 };
+      await update(roomRef, {
+        scores: nextScores,
+        [`spawns/${spawnId}`]: null,
+        lastHitAt: Date.now()
+      });
+    }
+
+    async function spawnLoop() {
+      if (!gameRunning) return;
+
+      const bounds = gameArea.getBoundingClientRect();
+      const size = 64;
+      const marginX = 18;
+      const marginTop = 90;
+      const marginBottom = 70;
+      const x = randomBetween(marginX, Math.max(marginX, bounds.width - size - marginX));
+      const y = randomBetween(marginTop, Math.max(marginTop, bounds.height - size - marginBottom));
+      const spawnId = hasFirebase
+        ? push(ref(db, `rooms/${roomId}/spawns`)).key
+        : `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      if (hasFirebase) {
+        await update(ref(db, `rooms/${roomId}`), {
+          [`spawns/${spawnId}`]: { x, y, createdAt: Date.now() }
+        });
+      } else {
+        spawnFriesElement(spawnId, x, y);
+        setTimeout(() => {
+          const el = document.querySelector(`[data-spawn-id="${spawnId}"]`);
+          if (el) {
+            activeFries.delete(el);
+            el.remove();
+          }
+        }, FRIES_LIFETIME);
+      }
+
+      spawnTimeout = setTimeout(spawnLoop, randomBetween(SPAWN_MIN, SPAWN_MAX));
+    }
+
+    function startRenderLoop() {
+      resetLocalGameState();
+      showScreen(loadingScreen);
+      statusPill.textContent = hasFirebase ? 'Firebase room active' : 'Demo mode active';
+
+      setTimeout(() => {
+        gameRunning = true;
+        loadingScreen.classList.add('hidden');
+        updateHUD();
+        spawnLoop();
+
+        if (!hasFirebase) {
+          tickInterval = setInterval(() => {
+            timeLeft -= 1;
+            updateHUD();
+            if (timeLeft <= 0) {
+              endGameLocal();
+            }
+          }, 1000);
+        }
+      }, 900);
+    }
+
+    async function startGame() {
+      if (!roomId) await ensureRoom();
+
+      if (!hasFirebase) {
+        scores = { p1: 0, p2: 0 };
+        startRenderLoop();
+        return;
+      }
+
+      await update(ref(db, `rooms/${roomId}`), {
+        status: 'playing',
+        timeLeft: GAME_DURATION,
+        scores: { p1: 0, p2: 0 },
+        spawns: {}
+      });
+
+      if (myPlayer === 'p1') {
+        clearInterval(tickInterval);
+        tickInterval = setInterval(async () => {
+          const roomRef = ref(db, `rooms/${roomId}`);
+          const snap = await get(roomRef);
+          const state = snap.val();
+
+          if (!state || state.status !== 'playing') {
+            clearInterval(tickInterval);
+            return;
+          }
+
+          const nextTime = (state.timeLeft || 0) - 1;
+          if (nextTime <= 0) {
+            clearInterval(tickInterval);
+            await update(roomRef, { status: 'ended', timeLeft: 0, spawns: {} });
+          } else {
+            await update(roomRef, { timeLeft: nextTime });
+          }
+        }, 1000);
+      }
+    }
+
+    function endGameLocal() {
+      gameRunning = false;
+      clearInterval(tickInterval);
+      clearTimeout(spawnTimeout);
+      clearActiveFries();
+      endGameFromState({ scores, timeLeft: 0 });
+    }
+
+    function endGameFromState(state) {
+      gameRunning = false;
+      clearInterval(tickInterval);
+      clearTimeout(spawnTimeout);
+      clearActiveFries();
+      scores = state.scores || scores;
+      timeLeft = 0;
+      updateHUD();
+
+      let winnerText = 'יש תיקו';
+      if ((scores.p1 || 0) > (scores.p2 || 0)) winnerText = 'Player 1 ניצח';
+      if ((scores.p2 || 0) > (scores.p1 || 0)) winnerText = 'Player 2 ניצח';
+
+      finalText.innerHTML = `Player 1: <strong>${scores.p1 || 0}</strong> נקודות<br />Player 2: <strong>${scores.p2 || 0}</strong> נקודות<br /><br /><strong>${winnerText}</strong>`;
+      showScreen(endScreen);
+    }
+
+    async function createRoomFlow() {
+      myPlayer = 'p1';
+      roomId = makeRoomId();
+      const nextUrl = `${window.location.pathname}?room=${roomId}&player=p1`;
+      history.replaceState({}, '', nextUrl);
+      await ensureRoom();
+      renderPlayers({ players: { p1: true, p2: hasFirebase ? false : true } });
+      showScreen(lobbyScreen);
+    }
+
+    async function joinRoomFlow() {
+      roomId = (roomInput.value || '').trim().toUpperCase();
+      if (!roomId) return;
+      myPlayer = 'p2';
+      const nextUrl = `${window.location.pathname}?room=${roomId}&player=p2`;
+      history.replaceState({}, '', nextUrl);
+      await ensureRoom();
+      showScreen(lobbyScreen);
+    }
+
+    async function copyLink() {
+      if (!roomId) return;
+      const shareUrl = getShareUrl();
+
+      if (!shareUrl) {
+        backendNote.textContent = 'כדי שחבר יפתח את המשחק, צריך להעלות את הקובץ ללינק ציבורי כמו GitHub Pages. כרגע זה רץ מקומית מהמחשב שלך.';
+        alert(`כרגע הקובץ רץ מקומית ולכן אי אפשר לשלוח קישור עובד לחבר.
+
+אפשר בינתיים להצטרף ידנית עם קוד החדר: ${roomId}`);
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        copyLinkBtn.textContent = 'הקישור הועתק';
+        setTimeout(() => {
+          copyLinkBtn.textContent = 'העתק קישור לחבר';
+        }, 1600);
+      } catch {
+        alert(shareUrl);
+      }
+    }
+
+    function runSelfChecks() {
+      console.assert(typeof GAME_DURATION === 'number', 'GAME_DURATION must be a number');
+      console.assert(typeof makeRoomId() === 'string', 'makeRoomId must return a string');
+      console.assert(makeRoomId().startsWith('MC'), 'room code should start with MC');
+      console.assert(hasFirebase === true, 'Firebase should be enabled with the provided config');
+      console.assert(FIREBASE_CONFIG.databaseURL.includes('firebaseio.com'), 'databaseURL should point to firebaseio.com');
+      console.assert(randomBetween(1, 2) >= 1 && randomBetween(1, 2) <= 2, 'randomBetween should stay within range');
+      console.assert(typeof getShareUrl === 'function', 'getShareUrl should exist');
+      if (HOSTING_BASE_URL) {
+        console.assert(getShareUrl().includes('?room='), 'Hosted share URL should contain room params');
+      }
+    }
+
+    createRoomBtn.addEventListener('click', createRoomFlow);
+    joinRoomBtn.addEventListener('click', () => showScreen(joinScreen));
+    confirmJoinBtn.addEventListener('click', joinRoomFlow);
+    copyLinkBtn.addEventListener('click', copyLink);
+    playBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', () => showScreen(lobbyScreen));
+    backBtn.addEventListener('click', () => showScreen(startScreen));
+
+    roomInput.value = roomId;
+    updateHUD();
+
+    if (!isPublicHttpUrl() && !HOSTING_BASE_URL) {
+      backendNote.textContent = 'הקובץ פתוח מקומית. כדי לשתף חבר בלינק, צריך להעלות אותו ל-GitHub Pages או Hosting אחר. בינתיים אפשר לבדוק על אותו מכשיר או להצטרף ידנית עם קוד חדר.';
+    }
+    runSelfChecks();
+
+    if (roomId) {
+      ensureRoom().then(() => {
+        if (myPlayer !== 'p1' && myPlayer !== 'p2') myPlayer = 'p2';
+        showScreen(lobbyScreen);
+      }).catch((error) => {
+        console.error('Failed to initialize room:', error);
+        backendNote.textContent = 'Firebase מחובר, אבל הייתה תקלה בפתיחת החדר. בדקו הרשאות Realtime Database.';
+        showScreen(startScreen);
+      });
+    }
+  </script>
+</body>
+</html>
