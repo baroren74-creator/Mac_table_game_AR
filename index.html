@@ -474,6 +474,7 @@
     const ITEM_LIFETIME = 1400;
     const ITEM_SIZE = 78;
     const MIN_DISTANCE = 92;
+    const TOP_SAFE_ZONE = 72;
 
     const app = initializeApp(FIREBASE_CONFIG);
     const db = getDatabase(app);
@@ -641,15 +642,20 @@
     function findSpawnPosition(existing) {
       const rect = gameArea.getBoundingClientRect();
       const margin = 18;
+      const minY = margin + TOP_SAFE_ZONE;
+      const usableWidth = Math.max(1, rect.width - ITEM_SIZE - margin * 2);
+      const usableHeight = Math.max(1, rect.height - ITEM_SIZE - minY - margin);
+
       for (let attempt = 0; attempt < 40; attempt += 1) {
-        const x = Math.random() * Math.max(1, rect.width - ITEM_SIZE - margin * 2) + margin;
-        const y = Math.random() * Math.max(1, rect.height - ITEM_SIZE - margin * 2) + margin;
+        const x = Math.random() * usableWidth + margin;
+        const y = Math.random() * usableHeight + minY;
         const ok = existing.every((pos) => Math.hypot(pos.x - x, pos.y - y) >= MIN_DISTANCE);
         if (ok) return { x, y };
       }
+
       return {
-        x: Math.random() * Math.max(1, rect.width - ITEM_SIZE - margin * 2) + margin,
-        y: Math.random() * Math.max(1, rect.height - ITEM_SIZE - margin * 2) + margin
+        x: Math.random() * usableWidth + margin,
+        y: Math.random() * usableHeight + minY
       };
     }
 
@@ -746,16 +752,21 @@
 
     function renderResults(state) {
       const roundWinners = state.roundWinners || [null, null, null];
+      const totalScores = state.totalScores || { p1: 0, p2: 0 };
       const wins = {
         p1: roundWinners.filter((w) => w === 'p1').length,
-        p2: roundWinners.filter((w) => w === 'p2').length
+        p2: roundWinners.filter((w) => w === 'p2').length,
       };
-
-      finalScoreText.textContent = `${wins.p1} - ${wins.p2}`;
 
       let finalWinner = 'יש תיקו';
       if (wins.p1 > wins.p2) finalWinner = 'Player 1 ניצח';
       if (wins.p2 > wins.p1) finalWinner = 'Player 2 ניצח';
+
+      finalScoreText.textContent = `${wins.p1} - ${wins.p2}`;
+      resultsBlock.innerHTML = `
+        <div class="results-row"><span>סה״כ אייקונים Player 1</span><strong>${totalScores.p1 || 0}</strong></div>
+        <div class="results-row"><span>סה״כ אייקונים Player 2</span><strong>${totalScores.p2 || 0}</strong></div>
+      `;
       finalWinnerText.textContent = finalWinner;
     }
 
