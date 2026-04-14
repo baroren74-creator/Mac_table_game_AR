@@ -130,6 +130,22 @@
       background: radial-gradient(circle at center, transparent 45%, rgba(0,0,0,.15) 100%);
       pointer-events: none;
     }
+    #cameraLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: none;
+      overflow: hidden;
+    }
+    #cameraLayer.active {
+      display: block;
+    }
+    #cameraLayer video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
     #gameArea {
       position: absolute;
       inset: 0;
@@ -344,6 +360,7 @@
 
     <div class="game-wrap">
       <div class="arena">
+        <div id="cameraLayer"><video id="cameraGameVideo" playsinline autoplay muted></video></div>
         <div class="round-banner" id="roundBanner">הכינו את השולחן למשחק</div>
         <div class="sticker" id="stickerText">Room ----</div>
         <div id="gameArea"></div>
@@ -452,8 +469,8 @@
 
     const ROUND_DURATION = 8;
     const BETWEEN_ROUNDS = 3;
-    const SPAWN_MIN = 420;
-    const SPAWN_MAX = 760;
+    const SPAWN_MIN = 180;
+    const SPAWN_MAX = 320;
     const ITEM_LIFETIME = 1400;
     const ITEM_SIZE = 78;
     const MIN_DISTANCE = 92;
@@ -494,6 +511,8 @@
     const lockTableBtn = document.getElementById('lockTableBtn');
     const cancelCameraBtn = document.getElementById('cancelCameraBtn');
     const cameraVideo = document.getElementById('cameraVideo');
+    const cameraGameVideo = document.getElementById('cameraGameVideo');
+    const cameraLayer = document.getElementById('cameraLayer');
     const restartBtn = document.getElementById('restartBtn');
     const backBtn = document.getElementById('backBtn');
 
@@ -694,6 +713,7 @@
 
         if (state.status === 'lobby') {
           clearItems();
+          if (!tableLocked) cameraLayer.classList.remove('active');
           showScreen(lobbyScreen);
         }
 
@@ -837,7 +857,11 @@
 
     function lockTable() {
       tableLocked = true;
-      backendNote.textContent = 'השולחן ננעל. עכשיו אפשר להתחיל טורניר.';
+      if (cameraStream) {
+        cameraGameVideo.srcObject = cameraStream;
+        cameraLayer.classList.add('active');
+      }
+      backendNote.textContent = 'השולחן ננעל. עכשיו אפשר להתחיל טורניר על רקע המצלמה.';
       showScreen(lobbyScreen);
     }
 
