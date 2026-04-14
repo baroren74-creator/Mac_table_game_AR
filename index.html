@@ -6,7 +6,7 @@
   <title>Mc Table Battle</title>
   <style>
     :root {
-      --mcd-red: #d61f26;
+      --mcd-red: rgb(219, 0, 7);
       --mcd-yellow: #ffbc0d;
       --mcd-dark: #222;
       --shadow: 0 10px 30px rgba(0,0,0,.16);
@@ -390,6 +390,21 @@
       </div>
     </div>
 
+    <div class="screen hidden" id="cameraScreen">
+      <div class="panel">
+        <h1>📷</h1>
+        <p>כוונו את המצלמה לשולחן, ואז נעלו את מיקום המשחק לפני תחילת הטורניר.</p>
+        <div style="position:relative; width:100%; aspect-ratio: 9 / 14; border-radius:20px; overflow:hidden; background:#000; margin:14px 0; border:2px solid rgba(255,255,255,.25);">
+          <video id="cameraVideo" playsinline autoplay muted style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+            <div style="width:72%; height:42%; border:3px dashed rgba(255,255,255,.95); border-radius:22px; box-shadow:0 0 0 999px rgba(0,0,0,.15);"></div>
+          </div>
+        </div>
+        <button class="btn" id="lockTableBtn">נעלו על השולחן</button>
+        <button class="btn secondary" id="cancelCameraBtn">חזרה</button>
+      </div>
+    </div>
+
     <div class="screen hidden" id="transitionScreen">
       <div class="panel">
         <h1 id="transitionTitle">סיבוב 1</h1>
@@ -401,7 +416,7 @@
     <div class="screen hidden" id="endScreen">
       <div class="panel">
         <h1>🏁</h1>
-        <div class="results-block" id="resultsBlock"></div>
+        <div style="font-size:42px; font-weight:900; margin:10px 0 16px;" id="finalScoreText">0 - 0</div>
         <p id="finalWinnerText"></p>
         <button class="btn" id="restartBtn">חזרה ללובי</button>
       </div>
@@ -461,12 +476,13 @@
     const transitionTitle = document.getElementById('transitionTitle');
     const transitionText = document.getElementById('transitionText');
     const transitionCountdown = document.getElementById('transitionCountdown');
-    const resultsBlock = document.getElementById('resultsBlock');
+    const finalScoreText = document.getElementById('finalScoreText');
     const finalWinnerText = document.getElementById('finalWinnerText');
 
     const startScreen = document.getElementById('startScreen');
     const lobbyScreen = document.getElementById('lobbyScreen');
     const joinScreen = document.getElementById('joinScreen');
+    const cameraScreen = document.getElementById('cameraScreen');
     const transitionScreen = document.getElementById('transitionScreen');
     const endScreen = document.getElementById('endScreen');
 
@@ -475,6 +491,9 @@
     const confirmJoinBtn = document.getElementById('confirmJoinBtn');
     const copyLinkBtn = document.getElementById('copyLinkBtn');
     const startTournamentBtn = document.getElementById('startTournamentBtn');
+    const lockTableBtn = document.getElementById('lockTableBtn');
+    const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+    const cameraVideo = document.getElementById('cameraVideo');
     const restartBtn = document.getElementById('restartBtn');
     const backBtn = document.getElementById('backBtn');
 
@@ -482,6 +501,8 @@
     let roomId = (params.get('room') || '').toUpperCase();
     let myPlayer = params.get('player') || 'p1';
     let roomStateUnsubscribe = null;
+    let cameraStream = null;
+    let tableLocked = false;
     let tickInterval = null;
     let spawnTimeout = null;
     let gameRunning = false;
@@ -489,7 +510,7 @@
     const activeItems = new Map();
 
     function showScreen(screen) {
-      [startScreen, lobbyScreen, joinScreen, transitionScreen, endScreen].forEach((el) => el.classList.add('hidden'));
+      [startScreen, lobbyScreen, joinScreen, cameraScreen, transitionScreen, endScreen].forEach((el) => el.classList.add('hidden'));
       screen.classList.remove('hidden');
     }
 
@@ -705,30 +726,16 @@
 
     function renderResults(state) {
       const roundWinners = state.roundWinners || [null, null, null];
-      const totalScores = state.totalScores || { p1: 0, p2: 0 };
       const wins = {
         p1: roundWinners.filter((w) => w === 'p1').length,
         p2: roundWinners.filter((w) => w === 'p2').length
       };
 
-      const roundText = roundWinners.map((winner, index) => {
-        let label = 'תיקו';
-        if (winner === 'p1') label = 'Player 1';
-        if (winner === 'p2') label = 'Player 2';
-        return `<div class="results-row"><span>${ROUNDS[index].label}</span><strong>${label}</strong></div>`;
-      }).join('');
+      finalScoreText.textContent = `${wins.p1} - ${wins.p2}`;
 
       let finalWinner = 'יש תיקו';
-      if (wins.p1 > wins.p2) finalWinner = 'Player 1 ניצח בטורניר';
-      if (wins.p2 > wins.p1) finalWinner = 'Player 2 ניצח בטורניר';
-
-      resultsBlock.innerHTML = `
-        ${roundText}
-        <div class="results-row"><span>ניקוד כולל Player 1</span><strong>${totalScores.p1 || 0}</strong></div>
-        <div class="results-row"><span>ניקוד כולל Player 2</span><strong>${totalScores.p2 || 0}</strong></div>
-        <div class="results-row"><span>סיבובים שניצח Player 1</span><strong>${wins.p1}</strong></div>
-        <div class="results-row"><span>סיבובים שניצח Player 2</span><strong>${wins.p2}</strong></div>
-      `;
+      if (wins.p1 > wins.p2) finalWinner = 'Player 1 ניצח';
+      if (wins.p2 > wins.p1) finalWinner = 'Player 2 ניצח';
       finalWinnerText.textContent = finalWinner;
     }
 
@@ -792,6 +799,12 @@
     }
 
     async function startTournament() {
+      if (!tableLocked) {
+        backendNote.textContent = 'לפני תחילת הטורניר צריך לפתוח מצלמה ולנעול את השולחן.';
+        await openCameraSetup();
+        return;
+      }
+
       if (!roomId) await createRoomIfNeeded();
       await update(ref(db, `rooms/${roomId}`), {
         status: 'between_rounds',
@@ -803,6 +816,33 @@
         spawns: {}
       });
       if (myPlayer === 'p1') await hostGameTimer();
+    }
+
+    async function openCameraSetup() {
+      showScreen(cameraScreen);
+      try {
+        if (!cameraStream) {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+          });
+          cameraVideo.srcObject = cameraStream;
+        }
+      } catch (error) {
+        console.error(error);
+        backendNote.textContent = 'לא הצלחתי לפתוח מצלמה. בדקו הרשאות מצלמה בדפדפן.';
+        showScreen(lobbyScreen);
+      }
+    }
+
+    function lockTable() {
+      tableLocked = true;
+      backendNote.textContent = 'השולחן ננעל. עכשיו אפשר להתחיל טורניר.';
+      showScreen(lobbyScreen);
+    }
+
+    function closeCameraSetup() {
+      showScreen(lobbyScreen);
     }
 
     async function createRoomFlow() {
@@ -839,6 +879,8 @@
       console.assert(ROUNDS.length === 3, 'should have exactly 3 rounds');
       console.assert(typeof ASSETS.chips.src === 'string', 'chips asset should exist');
       console.assert(typeof shareUrl === 'function', 'shareUrl should exist');
+      console.assert(typeof openCameraSetup === 'function', 'camera setup should exist');
+      console.assert(typeof lockTable === 'function', 'lockTable should exist');
     }
 
     createRoomBtn.addEventListener('click', createRoomFlow);
@@ -846,6 +888,8 @@
     confirmJoinBtn.addEventListener('click', joinRoomFlow);
     copyLinkBtn.addEventListener('click', copyLink);
     startTournamentBtn.addEventListener('click', startTournament);
+    lockTableBtn.addEventListener('click', lockTable);
+    cancelCameraBtn.addEventListener('click', closeCameraSetup);
     restartBtn.addEventListener('click', () => showScreen(lobbyScreen));
     backBtn.addEventListener('click', () => showScreen(startScreen));
 
